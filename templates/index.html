@@ -1,0 +1,52 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Home - HospitalCare{% endblock %}
+
+{% block content %}
+
+<div class="p-5 mb-4 bg-light rounded-3 shadow-sm">
+    <div class="container-fluid py-5">
+        <h1 class="display-5 fw-bold">Your Health, Our Priority</h1>
+        <p class="col-md-8 fs-5">
+            We provide professional medical care with modern facilities and highly trained specialists.
+        </p>
+        <a class="btn btn-primary btn-lg mt-2">Book Appointment</a>
+    </div>
+</div>
+
+<h3 class="fw-bold text-center mt-5">Our Key Services</h3>
+
+<div class="row mt-4">
+    <div class="col-md-4">
+      <div class="card shadow-sm" style="width: 18rem;">
+            <div class="card-body">
+                <h4>General Consultation</h4>
+                <img src="{% static 'img/consultation.jpg' %}" class="img-fluid rounded-3 mb-3" alt="Consultation Icon">
+                <p>Get examined by our experienced doctors.</p>
+            </div>
+        </div>
+    </div>
+
+    <div class="col-md-4">
+        <div class="card shadow-sm">
+            <div class="card-body">
+                <img src="{% static 'img/oncology-2.webp' %}" class="img-fluid rounded-3 mb-3" alt="Consultation Icon">
+                <h4>Emergency Care</h4>
+                <p>24/7 emergency services available anytime.</p>
+            </div>
+        </div>
+    </div>
+
+    <div class="col-md-4">
+        <div class="card shadow-sm">
+            <div class="card-body">
+                <h4>Lab Services</h4>
+                <img src="{% static 'img/lab.jpg' %}" class="img-fluid rounded-3 mb-3" alt="Consultation Icon">
+                <p>Fast and accurate medical testing.</p>
+            </div>
+        </div>
+    </div>
+</div>
+
+{% endblock %}
