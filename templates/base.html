@@ -14,21 +14,33 @@
 <!-- Navbar -->
 <nav class="navbar navbar-expand-lg navbar-light bg-primary shadow-sm">
     <div class="container">
-        <a class="navbar-brand fw-bold" href="#">MediFiti</a>
-        <button class="navbar-toggler" type="button" data-bs-toggle="collapse"
-                data-bs-target="#navbarNav">
-            <span class="navbar-toggler-icon"></span>
-        </button>
+        <div class="d-flex align-items-center justify-content-between w-100">
+            <div class="d-flex align-items-center">
+                <img src="{% static 'img/Medifiti logo.png' %}" alt="Medifiti logo" style="height: 50px; width: auto; margin-right: 10px;">
+                <a class="navbar-brand fw-bold mb-0" href="{% url 'index' %}">MediFiti</a>
+            </div>
+            <button class="navbar-toggler ms-auto" type="button" data-bs-toggle="collapse"
+                    data-bs-target="#navbarNav">
+                <span class="navbar-toggler-icon"></span>
+            </button>
+        </div>
 
         <div class="collapse navbar-collapse" id="navbarNav">
             <ul class="navbar-nav ms-auto">
-                <li class="nav-item"><a class="nav-link" href="{% url 'index' %}">Home</a></li>
-                <li class="nav-item"><a class="nav-link" href="{% url 'about' %}">About Us</a></li>
-                <li class="nav-item"><a class="nav-link" href="{% url 'services' %}">Services</a></li>
-                <li class="nav-item"><a class="nav-link" href="{% url 'contact' %}">Contact Us</a></li>
-                <li class="nav-item"><a class="nav-link" href="{% url 'doctors' %}">Doctors</a></li>
-                <li class="nav-item"><a class="nav-link" href="{% url 'departments' %}">Departments</a></li>
+                <li class="nav-item"><a class="nav-link text-white" href="{% url 'index' %}">Home</a></li>
+                <li class="nav-item"><a class="nav-link text-white" href="{% url 'about' %}">About Us</a></li>
+                <li class="nav-item"><a class="nav-link text-white" href="{% url 'services' %}">Services</a></li>
+                <li class="nav-item"><a class="nav-link text-white" href="{% url 'contact' %}">Contact Us</a></li>
+                <li class="nav-item"><a class="nav-link text-white" href="{% url 'doctors' %}">Doctors</a></li>
+                <li class="nav-item"><a class="nav-link text-white" href="{% url 'departments' %}">Departments</a></li>
 
+            {% if user.is_authenticated %}
+                <li class="nav-item"><a class="nav-link text-white" href="{% url 'profile' %}">User Profile</a></li>
+                <li class="nav-item"><a class="nav-link text-white" href="{% url 'logout' %}">Logout</a></li>
+            {% else %}
+                <li class="nav-item"><a class="nav-link text-white" href="{% url 'register' %}">Register</a></li>
+                <li class="nav-item"><a class="nav-link text-white" href="{% url 'login' %}">Login</a></li>
+            {% endif %}
             </ul>
         </div>
     </div>
