@@ -5,13 +5,15 @@
 
 {% block content %}
 
-<div class="p-5 mb-4 bg-light rounded-3 shadow-sm">
+<div class="p-5 mb-4 bg-light rounded-3 shadow-sm ">
     <div class="container-fluid py-5">
         <h1 class="display-5 fw-bold">Your Health, Our Priority</h1>
         <p class="col-md-8 fs-5">
             We provide professional medical care with modern facilities and highly trained specialists.
         </p>
-        <a class="btn btn-primary btn-lg mt-2">Book Appointment</a>
+        <img src="{% static 'img/staff-6.webp' %}" class="img-fluid rounded-3 mb-3" alt="Staff">
+
+        <a class="btn btn-primary btn-lg mt-2 center" href="{% url 'appointment' %}">Book Appointment</a>
     </div>
 </div>
 
@@ -22,7 +24,7 @@
       <div class="card shadow-sm" style="width: 18rem;">
             <div class="card-body">
                 <h4>General Consultation</h4>
-                <img src="{% static 'img/consultation.jpg' %}" class="img-fluid rounded-3 mb-3" alt="Consultation Icon">
+                <img src="{% static 'img/pediatrics-2.webp  ' %}" class="img-fluid rounded-3 mb-3" alt="Consultation Icon">
                 <p>Get examined by our experienced doctors.</p>
             </div>
         </div>
@@ -42,11 +44,26 @@
         <div class="card shadow-sm">
             <div class="card-body">
                 <h4>Lab Services</h4>
-                <img src="{% static 'img/lab.jpg' %}" class="img-fluid rounded-3 mb-3" alt="Consultation Icon">
+                <img src="{% static 'img/laboratory-3.webp' %}" class="img-fluid rounded-3 mb-3" alt="Consultation Icon">
                 <p>Fast and accurate medical testing.</p>
             </div>
         </div>
     </div>
 </div>
+    <div class="container text-center mt-5">
+       <div class="contact-icon">
+                <i class="fas fa-phone"></i>
+              </div>
+        <div class="contact-text">
+          <h5>Need Immediate Assistance?</h5>
+            <p>Our medical team is available around the clock for urgent consultations and emergency support.</p>
+        </div>
 
+            <div class="contact-actions">
+              <a href="tel:+2547687653" class="call-btn">
+                <i class="fas fa-phone"></i>
+                +2547687653
+              </a>
+            </div>
+    </div>
 {% endblock %}
