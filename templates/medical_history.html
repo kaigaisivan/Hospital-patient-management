@@ -1,0 +1,88 @@
+{% extends 'base.html' %}
+
+{% block title %}Medical History{% endblock %}
+
+{% block content %}
+<div class="container py-5">
+  <div class="row">
+    <div class="col-md-12">
+      <h2 class="fw-bold mb-4">
+        <a href="{% url 'profile' %}" class="text-decoration-none text-muted me-2">
+          <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" fill="currentColor" class="bi bi-arrow-left" viewBox="0 0 16 16">
+            <path fill-rule="evenodd" d="M12 8a.5.5 0 0 1-.5.5H5.707l2.147 2.146a.5.5 0 0 1-.708.708l-3-3a.5.5 0 0 1 0-.708l3-3a.5.5 0 1 1 .708.708L5.707 7.5H11.5a.5.5 0 0 1 .5.5z"/>
+          </svg>
+        </a>
+        Medical History
+      </h2>
+
+      <div class="row">
+        <!-- Allergies Card -->
+        <div class="col-md-6 mb-4">
+          <div class="card h-100">
+            <div class="card-body">
+              <h6 class="card-title fw-bold">
+                <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" fill="#fd7e14" class="me-2" viewBox="0 0 16 16">
+                  <path d="M8 15A7 7 0 1 1 8 1a7 7 0 0 1 0 14zm0 1A8 8 0 1 0 8 0a8 8 0 0 0 0 16z"/>
+                  <path d="M7.5 11h1V5.5h-1V11z"/>
+                </svg>
+                Allergies
+              </h6>
+              <p class="card-text text-muted">{{ profile.allergies|default:'No allergies recorded' }}</p>
+            </div>
+          </div>
+        </div>
+
+        <!-- Medical Conditions Card -->
+        <div class="col-md-6 mb-4">
+          <div class="card h-100">
+            <div class="card-body">
+              <h6 class="card-title fw-bold">
+                <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" fill="#dc3545" class="me-2" viewBox="0 0 16 16">
+                  <path d="M8 0a1 1 0 0 1 1 1v4.5h4.5a1 1 0 1 1 0 2H9v4.5a1 1 0 1 1-2 0V7.5H2.5a1 1 0 0 1 0-2H7V1a1 1 0 0 1 1-1z"/>
+                </svg>
+                Medical Conditions
+              </h6>
+              <p class="card-text text-muted">{{ profile.medical_conditions|default:'No conditions recorded' }}</p>
+            </div>
+          </div>
+        </div>
+
+        <!-- Current Medications Card -->
+        <div class="col-md-6 mb-4">
+          <div class="card h-100">
+            <div class="card-body">
+              <h6 class="card-title fw-bold">
+                <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" fill="#198754" class="me-2" viewBox="0 0 16 16">
+                  <path d="M7 6h2v4H7V6zm-2-3h6v1H5V3zm0 3h6v1H5V6zm0 3h6v1H5V9zm-3-3v4h1V6H2z"/>
+                </svg>
+                Current Medications
+              </h6>
+              <p class="card-text text-muted">{{ profile.medications|default:'No medications recorded' }}</p>
+            </div>
+          </div>
+        </div>
+
+        <!-- Blood Type Card -->
+        <div class="col-md-6 mb-4">
+          <div class="card h-100">
+            <div class="card-body">
+              <h6 class="card-title fw-bold">
+                <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" fill="#0d6efd" class="me-2" viewBox="0 0 16 16">
+                  <path d="M8 15A7 7 0 1 1 8 1a7 7 0 0 1 0 14zm0 1A8 8 0 1 0 8 0a8 8 0 0 0 0 16z"/>
+                  <path d="M8 4a.5.5 0 0 0-.5.5v3H5a.5.5 0 0 0 0 1h2.5v2.5a.5.5 0 0 0 1 0V8.5H11a.5.5 0 0 0 0-1H8.5V4.5A.5.5 0 0 0 8 4z"/>
+                </svg>
+                Blood Type
+              </h6>
+              <p class="card-text text-muted">{{ profile.get_blood_type_display|default:'Not recorded' }}</p>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="alert alert-info mt-4">
+        <strong>To update your medical information, </strong><a href="{% url 'profile' %}">edit your profile</a>.
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %}
