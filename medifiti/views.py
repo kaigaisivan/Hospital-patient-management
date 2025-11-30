@@ -24,7 +24,7 @@ def register(request):
         form = RegisterationForm(request.POST)
         if form.is_valid():
             form.save()
-            return render(request, 'index.html')
+            return render(request, 'login.html')
     else:
         form = RegisterationForm()
     return render(request, 'register.html', {'form': form})
