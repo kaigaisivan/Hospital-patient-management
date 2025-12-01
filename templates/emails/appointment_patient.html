@@ -1,0 +1,30 @@
+<html>
+  <body style="font-family: Arial, sans-serif; color: #333;">
+    <div style="max-width:600px;margin:0 auto;padding:20px;border:1px solid #e6e6e6;">
+      <h1 style="margin:0 0 10px;color:#0d6efd;">HospitalCare</h1>
+      <p style="margin:0 0 20px;">Hello {{ appointment.patient_name }},</p>
+
+      <p>Your appointment has been <strong>successfully booked</strong> with HospitalCare. We're looking forward to seeing you!</p>
+
+      <h3 style="margin-top:20px;border-bottom:1px solid #eee;padding-bottom:6px;">Appointment Details</h3>
+      <div style="background:#f8f9fa;padding:12px;border-radius:4px;margin-bottom:16px;">
+        <p style="margin:0 0 8px;"><strong>Doctor:</strong> Dr. {{ doctor.name }} ({{ doctor.specialty }})</p>
+        <p style="margin:0 0 8px;"><strong>Date:</strong> {{ appointment.appointment_date }}</p>
+        <p style="margin:0 0 8px;"><strong>Time:</strong> {{ appointment.appointment_time }}</p>
+        <p style="margin:0;"><strong>Status:</strong> {{ appointment.get_status_display }}</p>
+      </div>
+
+      <h4 style="margin-top:12px;">Reason for visit</h4>
+      <p>{{ appointment.reason|linebreaks }}</p>
+
+      <p style="margin-top:20px;padding:12px;background:#e7f3ff;border-left:4px solid #0d6efd;border-radius:4px;">
+        <strong>Need to reschedule or cancel?</strong><br>
+        Please contact us as soon as possible using our contact form or call us directly.
+      </p>
+
+      <p style="margin-top:24px;">Regards,<br><strong>HospitalCare Team</strong></p>
+      <hr>
+      <small style="color:#777;">This is an automated message — do not reply to this address.</small>
+    </div>
+  </body>
+</html>

@@ -1,0 +1,16 @@
+<html>
+  <body style="font-family: Arial, sans-serif; color: #333;">
+    <div style="max-width:700px;margin:0 auto;padding:20px;border:1px solid #e6e6e6;background:#fff;">
+      <h1 style="margin:0 0 12px;color:#0d6efd;">HospitalCare — New Appointment Request</h1>
+      <p style="margin:0 0 8px;"><strong>Patient:</strong> {{ appointment.patient_name }}</p>
+      <p style="margin:0 0 8px;"><strong>Email:</strong> {{ appointment.patient_email }}</p>
+      <p style="margin:0 0 8px;"><strong>Phone:</strong> {{ appointment.patient_phone }}</p>
+      <p style="margin:0 0 8px;"><strong>Doctor:</strong> Dr. {{ doctor.name }} ({{ doctor.specialty }})</p>
+      <p style="margin:0 0 12px;"><strong>Date:</strong> {{ appointment.appointment_date }} at {{ appointment.appointment_time }}</p>
+      <hr>
+      <h4 style="margin-top:12px;">Reason</h4>
+      <div style="background:#f8f9fa;padding:12px;border-radius:4px;margin-bottom:12px;">{{ appointment.reason|linebreaks }}</div>
+      <p style="color:#666;font-size:13px;">View this appointment in the admin dashboard to confirm or modify the status.</p>
+    </div>
+  </body>
+</html>

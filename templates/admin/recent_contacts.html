@@ -1,0 +1,22 @@
+{% if contacts %}
+  <table class="adminlist">
+    <thead>
+      <tr>
+        <th>Time</th>
+        <th>Name</th>
+        <th>Email</th>
+      </tr>
+    </thead>
+    <tbody>
+      {% for c in contacts %}
+      <tr>
+        <td>{{ c.created_at|date:"Y-m-d H:i" }}</td>
+        <td>{{ c.full_name }}</td>
+        <td><a href="/admin/medifiti/contact/{{ c.id }}/change/">{{ c.email }}</a></td>
+      </tr>
+      {% endfor %}
+    </tbody>
+  </table>
+{% else %}
+  <p>No recent contacts.</p>
+{% endif %}

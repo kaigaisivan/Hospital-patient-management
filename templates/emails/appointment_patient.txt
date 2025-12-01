@@ -1,0 +1,20 @@
+Hello {{ appointment.patient_name }},
+
+Your appointment has been successfully booked with HospitalCare.
+
+Appointment Details:
+
+Doctor: Dr. {{ doctor.name }} ({{ doctor.specialty }})
+Date: {{ appointment.appointment_date }}
+Time: {{ appointment.appointment_time }}
+Status: {{ appointment.get_status_display }}
+
+Reason for visit:
+{{ appointment.reason }}
+
+If you need to reschedule or cancel, please contact us as soon as possible using the contact form on our website or call us directly.
+
+We look forward to seeing you!
+
+Regards,
+HospitalCare Team
