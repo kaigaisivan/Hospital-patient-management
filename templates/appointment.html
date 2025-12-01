@@ -1,0 +1,61 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Book Appointment - HospitalCare{% endblock %}
+
+{% block content %}
+
+<div class="container mt-5">
+    <h2 class="text-center fw-bold mb-4">Book an Appointment</h2>
+
+    <div class="row justify-content-center">
+        <div class="col-md-6">
+
+            <div class="card shadow-sm p-4 mb-5">
+                <form method="POST">
+                    {% csrf_token %}
+
+                    <div class="mb-3">
+                        <label class="form-label">Full Name</label>
+                        {{ form.full_name }}
+                    </div>
+
+                    <div class="mb-3">
+                        <label class="form-label">Email</label>
+                        {{ form.email }}
+                    </div>
+
+                    <div class="mb-3">
+                        <label class="form-label">Phone Number</label>
+                        {{ form.phone }}
+                    </div>
+
+                    <div class="mb-3">
+                        <label class="form-label">Service</label>
+                        {{ form.service }}
+                    </div>
+
+                    <div class="mb-3">
+                        <label class="form-label">Preferred Date</label>
+                        {{ form.date }}
+                    </div>
+
+                    <div class="mb-3">
+                        <label class="form-label">Preferred Time</label>
+                        {{ form.time }}
+                    </div>
+
+                    <div class="mb-3">
+                        <label class="form-label">Additional Message (optional)</label>
+                        {{ form.message }}
+                    </div>
+
+                    <button class="btn btn-primary w-100">Submit Appointment</button>
+                </form>
+            </div>
+
+        </div>
+    </div>
+</div>
+
+{% endblock %}

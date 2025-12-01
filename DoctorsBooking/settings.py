@@ -14,6 +14,14 @@ from pathlib import Path
 # settings.py
 
 import os # You usually need this import at the top
+# settings.py
+
+# This is usually True by default in new projects, but confirm it.
+
+
+#  local timezone.
+# For East Africa Time (EAT), use 'Africa/Nairobi'.
+
 
 BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 
@@ -115,7 +123,7 @@ AUTH_PASSWORD_VALIDATORS = [
 
 LANGUAGE_CODE = 'en-us'
 
-TIME_ZONE = 'UTC'
+TIME_ZONE = 'Africa/Nairobi'
 
 USE_I18N = True
 
