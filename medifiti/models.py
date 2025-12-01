@@ -1,22 +1,32 @@
-from django.db import models
-from django.utils import timezone
+from django.conf import settings
 from django.contrib.auth.models import AbstractUser
-
+from django.core.validators import RegexValidator
+from django.db import models
+from django.db.models.signals import post_save
+from django.dispatch import receiver
 from django.utils import timezone
 
 
-# Create your models here.
+phone_regex = RegexValidator(
+    regex=r'^\+?1?\d{9,15}$',
+    message='Phone number must be entered in the format: +999999999. Up to 15 digits allowed.'
+)
+
 
 class CustomUser(AbstractUser):
     """Custom user model with role-based access control."""
+    ROLE_ADMIN = 'admin'
+    ROLE_DOCTOR = 'doctor'
+    ROLE_PATIENT = 'patient'
+
     ROLE_CHOICES = [
-        ('admin', 'Administrator'),
-        ('doctor', 'Doctor'),
-        ('patient', 'Patient'),
+        (ROLE_ADMIN, 'Administrator'),
+        (ROLE_DOCTOR, 'Doctor'),
+        (ROLE_PATIENT, 'Patient'),
     ]
-    
-    role = models.CharField(max_length=20, choices=ROLE_CHOICES, default='patient')
-    phone = models.CharField(max_length=15, blank=True)
+
+    role = models.CharField(max_length=20, choices=ROLE_CHOICES, default=ROLE_PATIENT)
+    phone = models.CharField(max_length=15, blank=True, validators=[phone_regex])
     notification_email = models.EmailField(blank=True, help_text='Email address for admin alerts')
     notification_method = models.CharField(
         max_length=20,
@@ -28,61 +38,41 @@ class CustomUser(AbstractUser):
         default='email',
         help_text='How to receive notifications'
     )
-    
+
     def __str__(self):
-        return f"{self.username} ({self.get_role_display()})"
-    
+        role_label = dict(self.ROLE_CHOICES).get(self.role, self.role)
+        return f"{self.username} ({role_label})"
+
     class Meta:
         verbose_name = 'User'
         verbose_name_plural = 'Users'
+
 
 class Contact(models.Model):
     full_name = models.CharField(max_length=100)
     email = models.EmailField()
     message = models.TextField()
     created_at = models.DateTimeField(auto_now_add=True)
-    
+
     def __str__(self):
         return f"{self.full_name} - {self.email}"
-    
+
     class Meta:
         ordering = ['-created_at']
 
 
 class Doctor(models.Model):
-    user = models.OneToOneField(CustomUser, on_delete=models.CASCADE, null=True, blank=True, related_name='doctor_profile')
+    user = models.OneToOneField(
+        settings.AUTH_USER_MODEL, on_delete=models.CASCADE,
+        null=True, blank=True, related_name='doctor_profile'
+    )
     name = models.CharField(max_length=100)
-    specialty = models.CharField(max_length=100)
-    description = models.TextField()
+    specialty = models.CharField(max_length=100, blank=True)
+    description = models.TextField(blank=True)
     image = models.ImageField(upload_to='doctors/', null=True, blank=True)
-    
-    def __str__(self):
-        return f"Dr. {self.name} - {self.specialty}"
 
-
-class Appointment(models.Model):
-    STATUS_CHOICES = [
-        ('pending', 'Pending'),
-        ('confirmed', 'Confirmed'),
-        ('completed', 'Completed'),
-        ('cancelled', 'Cancelled'),
-    ]
-    
-    doctor = models.ForeignKey(Doctor, on_delete=models.CASCADE, related_name='appointments')
-    patient_name = models.CharField(max_length=100)
-    patient_email = models.EmailField()
-    patient_phone = models.CharField(max_length=15)
-    appointment_date = models.DateField()
-    appointment_time = models.TimeField()
-    reason = models.TextField()
-    status = models.CharField(max_length=20, choices=STATUS_CHOICES, default='pending')
-    created_at = models.DateTimeField(auto_now_add=True)
-    
     def __str__(self):
-        return f"{self.patient_name} - Dr. {self.doctor.name} - {self.appointment_date}"
-    
-    class Meta:
-        ordering = ['appointment_date', 'appointment_time']
+        return f"Dr. {self.name}"
 
 
 class Service(models.Model):
@@ -107,41 +97,73 @@ class LabSample(models.Model):
 
     def __str__(self):
         return f"{self.sample_id} - {self.status}"
+
+
 class Patient(models.Model):
-    first_name=models.CharField(max_length=200)
-    second_name=models.CharField(max_length=200)
-    age=models.IntegerField()
-    email=models.EmailField()
-    phone_number=models.IntegerField()
-    location=models.CharField(max_length=200)
-    date_time = models.DateTimeField(auto_now_add=True)
+    """Lightweight patient record for non-authenticated or legacy data."""
+    first_name = models.CharField(max_length=200)
+    last_name = models.CharField(max_length=200)
+    age = models.PositiveIntegerField(null=True, blank=True)
+    email = models.EmailField(blank=True)
+    phone_number = models.CharField(max_length=15, validators=[phone_regex], blank=True)
+    location = models.CharField(max_length=200, blank=True)
+    created_at = models.DateTimeField(auto_now_add=True)
 
     def __str__(self):
-        return f"{self.first_name} {self.second_name} {self.age} {self.email} {self.phone_number} {self.date_time}"
+        return f"{self.first_name} {self.last_name}"
 
 
-#appointment booking
 class Appointment(models.Model):
-    full_name = models.CharField(max_length=100)
-    email = models.EmailField()
-    phone = models.CharField(max_length=20)
-    service = models.CharField(max_length=100)
-    date = models.DateField()
-    time = models.TimeField()
-    message = models.TextField(blank=True, null=True)
-    created_at = models.DateTimeField(default=timezone.now)
+    """Unified appointment model supporting both authenticated patients and guest bookings."""
+    STATUS_PENDING = 'pending'
+    STATUS_CONFIRMED = 'confirmed'
+    STATUS_COMPLETED = 'completed'
+    STATUS_CANCELLED = 'cancelled'
+
+    STATUS_CHOICES = [
+        (STATUS_PENDING, 'Pending'),
+        (STATUS_CONFIRMED, 'Confirmed'),
+        (STATUS_COMPLETED, 'Completed'),
+        (STATUS_CANCELLED, 'Cancelled'),
+    ]
+
+    doctor = models.ForeignKey(Doctor, on_delete=models.CASCADE, related_name='appointments')
+    # If booking by a registered user/profile, link here; otherwise use the guest fields
+    patient_user = models.ForeignKey(
+        settings.AUTH_USER_MODEL, on_delete=models.SET_NULL,
+        null=True, blank=True, related_name='appointments'
+    )
+    patient_profile = models.ForeignKey(
+        'PatientProfile', on_delete=models.SET_NULL,
+        null=True, blank=True, related_name='appointments'
+    )
+    # Guest/paper record fallback fields (kept for convenience)
+    patient_name = models.CharField(max_length=100, blank=True)
+    patient_email = models.EmailField(blank=True)
+    patient_phone = models.CharField(max_length=15, validators=[phone_regex], blank=True)
+
+    appointment_date = models.DateField()
+    appointment_time = models.TimeField()
+    reason = models.TextField(blank=True)
+    status = models.CharField(max_length=20, choices=STATUS_CHOICES, default=STATUS_PENDING)
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        ordering = ['appointment_date', 'appointment_time']
 
     def __str__(self):
-        return f"Appointment for {self.full_name} on {self.date}"
+        name = self.patient_name
+        if not name and self.patient_profile:
+            # prefer full name from linked profile's user
+            try:
+                name = self.patient_profile.user.get_full_name() or self.patient_profile.user.username
+            except Exception:
+                name = ''
+        return f"{name or 'Unknown Patient'} - Dr. {self.doctor.name} - {self.appointment_date} {self.appointment_time}"
 
-from django.conf import settings
-from django.db.models.signals import post_save
-from django.dispatch import receiver
-from django.core.validators import RegexValidator
 
-
-# Patient profile linked one-to-one with Django's User
 class PatientProfile(models.Model):
+    """Patient profile linked one-to-one with the user model."""
     GENDER_CHOICES = (
         ('M', 'Male'),
         ('F', 'Female'),
@@ -169,28 +191,10 @@ class PatientProfile(models.Model):
         ('other', 'Other'),
     )
 
-    phone_regex = RegexValidator(
-        regex=r'^\+?1?\d{9,15}$',
-        message='Phone number must be entered in the format: +999999999. Up to 15 digits allowed.'
-    )
-
-    # Core identity
-    user = models.OneToOneField(settings.AUTH_USER_MODEL, on_delete=models.CASCADE)
+    user = models.OneToOneField(settings.AUTH_USER_MODEL, on_delete=models.CASCADE, related_name='patient_profile')
     date_of_birth = models.DateField(null=True, blank=True, help_text='Your date of birth (YYYY-MM-DD)')
-    gender = models.CharField(
-        max_length=1,
-        choices=GENDER_CHOICES,
-        blank=True,
-        help_text='Select your gender'
-    )
-
-    # Contact information
-    phone = models.CharField(
-        max_length=15,
-        validators=[phone_regex],
-        blank=True,
-        help_text='Contact phone number (e.g., +1234567890)'
-    )
+    gender = models.CharField(max_length=1, choices=GENDER_CHOICES, blank=True)
+    phone = models.CharField(max_length=15, validators=[phone_regex], blank=True)
     address_line1 = models.CharField(max_length=255, blank=True)
     address_line2 = models.CharField(max_length=255, blank=True)
     city = models.CharField(max_length=100, blank=True)
@@ -198,49 +202,20 @@ class PatientProfile(models.Model):
     postal_code = models.CharField(max_length=20, blank=True)
     country = models.CharField(max_length=100, blank=True, default='USA')
 
-    # Emergency contact
-    emergency_contact_name = models.CharField(max_length=150, blank=True, help_text='Full name of emergency contact')
-    emergency_contact_relation = models.CharField(
-        max_length=20,
-        choices=RELATIONSHIP_CHOICES,
-        blank=True,
-        help_text='Relationship to patient'
-    )
-    emergency_contact_phone = models.CharField(
-        max_length=15,
-        validators=[phone_regex],
-        blank=True,
-        help_text='Emergency contact phone number'
-    )
+    emergency_contact_name = models.CharField(max_length=150, blank=True)
+    emergency_contact_relation = models.CharField(max_length=20, choices=RELATIONSHIP_CHOICES, blank=True)
+    emergency_contact_phone = models.CharField(max_length=15, validators=[phone_regex], blank=True)
 
-    # Medical information
-    blood_type = models.CharField(
-        max_length=3,
-        choices=BLOOD_TYPE_CHOICES,
-        blank=True,
-        help_text='Your blood type'
-    )
-    allergies = models.TextField(
-        blank=True,
-        help_text='List any allergies (e.g., Penicillin, Peanuts, Shellfish)'
-    )
-    medications = models.TextField(
-        blank=True,
-        help_text='Current medications (e.g., Aspirin 500mg daily, Metformin 1000mg)'
-    )
-    medical_conditions = models.TextField(
-        blank=True,
-        help_text='Medical conditions (e.g., Diabetes, Hypertension, Asthma)'
-    )
+    blood_type = models.CharField(max_length=3, choices=BLOOD_TYPE_CHOICES, blank=True)
+    allergies = models.TextField(blank=True)
+    medications = models.TextField(blank=True)
+    medical_conditions = models.TextField(blank=True)
 
-    # Insurance information
-    insurance_provider = models.CharField(max_length=150, blank=True, help_text='Insurance company name')
-    insurance_number = models.CharField(max_length=150, blank=True, help_text='Insurance policy number')
+    insurance_provider = models.CharField(max_length=150, blank=True)
+    insurance_number = models.CharField(max_length=150, blank=True)
 
-    # Media
-    profile_photo_url = models.URLField(blank=True, help_text='URL to your profile photo')
+    profile_photo_url = models.URLField(blank=True)
 
-    # Administrative
     date_registered = models.DateTimeField(auto_now_add=True)
     last_updated = models.DateTimeField(auto_now=True)
 
@@ -250,10 +225,15 @@ class PatientProfile(models.Model):
         verbose_name_plural = 'Patient Profiles'
 
     def __str__(self):
-        return f"{self.user.get_full_name() or self.user.username}'s profile"
-# Create PatientProfile automatically when a new User is created
+        try:
+            name = self.user.get_full_name() or self.user.username
+        except Exception:
+            name = str(self.user)
+        return f"{name}'s profile"
+
+
+# Create PatientProfile automatically when a new User with role 'patient' is created
 @receiver(post_save, sender=settings.AUTH_USER_MODEL)
 def create_patient_profile(sender, instance, created, **kwargs):
-	if created:
-		PatientProfile.objects.create(user=instance)
-
+    if created and getattr(instance, 'role', None) == CustomUser.ROLE_PATIENT:
+        PatientProfile.objects.create(user=instance)
