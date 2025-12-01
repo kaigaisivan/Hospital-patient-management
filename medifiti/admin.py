@@ -2,7 +2,7 @@ from django.contrib import admin
 from django.contrib.auth.models import User
 
 from django.utils.html import format_html
-from django.utils.html import format_html
+
 from .models import Patient, Appointment, Service, Doctor
 
 
@@ -27,13 +27,12 @@ class ServiceAdmin(admin.ModelAdmin):
         return "(No image)"
     image_preview.short_description = "Image preview"
 
-
     @admin.register(Doctor)
     class DoctorAdmin(admin.ModelAdmin):
         list_display = ('name', 'specialty', 'user', 'created_at', 'updated_at')
         search_fields = ('name', 'specialty', 'description')
         list_filter = ('specialty', 'created_at', 'updated_at')
-        readonly_fields = ('image_preview',)
+        readonly_fields = ('image_preview', 'created_at', 'updated_at')
         fieldsets = (
             (None, {'fields': ('user', 'name', 'specialty', 'description', 'image', 'image_preview')}),
             ('Timestamps', {'fields': ('created_at', 'updated_at')}),
