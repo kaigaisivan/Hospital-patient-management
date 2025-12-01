@@ -1,0 +1,45 @@
+{% extends 'base.html' %}
+{% block content %}
+<div class="container mt-5">
+  <h2>Admin Dashboard</h2>
+  <form method="post" class="mb-4">
+    {% csrf_token %}
+    <div class="mb-3">
+      <label for="notification_email" class="form-label">Notification Email</label>
+      <input type="email" class="form-control" id="notification_email" name="notification_email" value="{{ admin.notification_email }}">
+    </div>
+    <div class="mb-3">
+      <label for="notification_method" class="form-label">Notification Method</label>
+      <select class="form-select" id="notification_method" name="notification_method">
+        <option value="email" {% if admin.notification_method == 'email' %}selected{% endif %}>Email Only</option>
+        <option value="in_app" {% if admin.notification_method == 'in_app' %}selected{% endif %}>In-App Only</option>
+        <option value="both" {% if admin.notification_method == 'both' %}selected{% endif %}>Email & In-App</option>
+      </select>
+    </div>
+    <button type="submit" class="btn btn-success">Save Settings</button>
+  </form>
+  <h3>Messages / Contacts</h3>
+  <table class="table table-bordered">
+    <thead>
+      <tr>
+        <th>Name</th>
+        <th>Email</th>
+        <th>Message</th>
+        <th>Date</th>
+      </tr>
+    </thead>
+    <tbody>
+      {% for contact in contacts %}
+      <tr>
+        <td>{{ contact.full_name }}</td>
+        <td>{{ contact.email }}</td>
+        <td>{{ contact.message|truncatechars:50 }}</td>
+        <td>{{ contact.created_at }}</td>
+      </tr>
+      {% empty %}
+      <tr><td colspan="4">No messages yet.</td></tr>
+      {% endfor %}
+    </tbody>
+  </table>
+</div>
+{% endblock %}

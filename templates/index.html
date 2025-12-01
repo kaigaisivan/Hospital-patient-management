@@ -5,48 +5,187 @@
 
 {% block content %}
 
-<div class="p-5 mb-4 bg-light rounded-3 shadow-sm">
+<!-- Hero Section -->
+<div class="p-5 mb-4 rounded-3 shadow-sm" style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white;">
     <div class="container-fluid py-5">
-        <h1 class="display-5 fw-bold">Your Health, Our Priority</h1>
-        <p class="col-md-8 fs-5">
-            We provide professional medical care with modern facilities and highly trained specialists.
+        <h1 class="display-4 fw-bold mb-3">Your Health, Our Priority</h1>
+        <p class="col-md-8 fs-5 mb-4">
+            We provide professional medical care with modern facilities and highly trained specialists. 
+            Expert doctors, compassionate care, and state-of-the-art technology.
         </p>
-        <a class="btn btn-primary btn-lg mt-2">Book Appointment</a>
+        {% if user.is_authenticated %}
+            <a class="btn btn-light btn-lg mt-2" href="{% url 'doctors' %}">Book Appointment Now</a>
+        {% else %}
+            <a class="btn btn-light btn-lg mt-2" href="{% url 'login' %}">Book Appointment - Login First</a>
+            <a class="btn btn-outline-light btn-lg mt-2 ms-2" href="{% url 'register' %}">Don't have an account? Register</a>
+        {% endif %}
     </div>
 </div>
 
-<h3 class="fw-bold text-center mt-5">Our Key Services</h3>
+<!-- Featured Services Section -->
+<section class="my-5">
+    <h2 class="fw-bold text-center mb-5">Our Services</h2>
+    <div class="row">
+        {% if services %}
+            {% for service in services %}
+            <div class="col-md-4 mb-4">
+                <div class="card shadow-sm h-100">
+                    {% if service.image %}
+                        <img src="{{ service.image.url }}" class="card-img-top" alt="{{ service.title }}" style="height: 200px; object-fit: cover;">
+                    {% else %}
+                        <div class="bg-light card-img-top d-flex align-items-center justify-content-center" style="height: 200px; background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white;">
+                            <div class="text-center">
+                                <h5>{{ service.title }}</h5>
+                            </div>
+                        </div>
+                    {% endif %}
+                    <div class="card-body">
+                        <h5 class="card-title">{{ service.title }}</h5>
+                        <p class="card-text">{{ service.short_description|default:service.description|truncatechars:100 }}</p>
+                        <a href="{% url 'service_detail' service.slug %}" class="btn btn-primary btn-sm">Learn More</a>
+                    </div>
+                </div>
+            </div>
+            {% endfor %}
+        {% else %}
+            <!-- Placeholder services if database is empty -->
+            <div class="col-md-4 mb-4">
+                <div class="card shadow-sm h-100">
+                    <div class="bg-light card-img-top d-flex align-items-center justify-content-center" style="height: 200px; background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white;">
+                        <div class="text-center">
+                            <h5>General Consultation</h5>
+                        </div>
+                    </div>
+                    <div class="card-body">
+                        <h5 class="card-title">General Consultation</h5>
+                        <p class="card-text">Get examined by our experienced doctors for routine check-ups and diagnosis.</p>
+                        <a href="{% url 'service_detail' 'general-consultation' %}" class="btn btn-primary btn-sm">Learn More</a>
+                    </div>
+                </div>
+            </div>
 
-<div class="row mt-4">
-    <div class="col-md-4">
-      <div class="card shadow-sm" style="width: 18rem;">
-            <div class="card-body">
-                <h4>General Consultation</h4>
-                <img src="{% static 'img/consultation.jpg' %}" class="img-fluid rounded-3 mb-3" alt="Consultation Icon">
-                <p>Get examined by our experienced doctors.</p>
+            <div class="col-md-4 mb-4">
+                <div class="card shadow-sm h-100">
+                    <div class="bg-light card-img-top d-flex align-items-center justify-content-center" style="height: 200px; background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%); color: white;">
+                        <div class="text-center">
+                            <h5>Emergency Care</h5>
+                        </div>
+                    </div>
+                    <div class="card-body">
+                        <h5 class="card-title">Emergency Care</h5>
+                        <p class="card-text">24/7 emergency services with rapid response and ambulance availability.</p>
+                        <a href="{% url 'service_detail' 'emergency-care' %}" class="btn btn-primary btn-sm">Learn More</a>
+                    </div>
+                </div>
+            </div>
+
+            <div class="col-md-4 mb-4">
+                <div class="card shadow-sm h-100">
+                    <div class="bg-light card-img-top d-flex align-items-center justify-content-center" style="height: 200px; background: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%); color: white;">
+                        <div class="text-center">
+                            <h5>Lab Services</h5>
+                        </div>
+                    </div>
+                    <div class="card-body">
+                        <h5 class="card-title">Lab Services</h5>
+                        <p class="card-text">Comprehensive laboratory testing with fast turnaround times and accurate results.</p>
+                        <a href="{% url 'service_detail' 'lab-services' %}" class="btn btn-primary btn-sm">Learn More</a>
+                    </div>
+                </div>
+            </div>
+        {% endif %}
+    </div>
+</section>
+
+<!-- Why Choose Us Section -->
+<section class="my-5 py-5" style="background: #f8f9fa; border-radius: 10px;">
+    <div class="container">
+        <h2 class="fw-bold text-center mb-5">Why Choose HospitalCare?</h2>
+        <div class="row">
+            <div class="col-md-3 text-center mb-4">
+                <div class="mb-3">
+                    <div style="font-size: 3rem; color: #667eea;">🏥</div>
+                </div>
+                <h5>Modern Facilities</h5>
+                <p>State-of-the-art medical equipment and technology</p>
+            </div>
+            <div class="col-md-3 text-center mb-4">
+                <div class="mb-3">
+                    <div style="font-size: 3rem; color: #667eea;">👨‍⚕️</div>
+                </div>
+                <h5>Expert Doctors</h5>
+                <p>Highly qualified and experienced medical professionals</p>
+            </div>
+            <div class="col-md-3 text-center mb-4">
+                <div class="mb-3">
+                    <div style="font-size: 3rem; color: #667eea;">⏰</div>
+                </div>
+                <h5>24/7 Available</h5>
+                <p>Round-the-clock medical services for emergencies</p>
+            </div>
+            <div class="col-md-3 text-center mb-4">
+                <div class="mb-3">
+                    <div style="font-size: 3rem; color: #667eea;">❤️</div>
+                </div>
+                <h5>Patient Care</h5>
+                <p>Compassionate and personalized treatment for every patient</p>
             </div>
         </div>
     </div>
+</section>
 
-    <div class="col-md-4">
-        <div class="card shadow-sm">
-            <div class="card-body">
-                <img src="{% static 'img/oncology-2.webp' %}" class="img-fluid rounded-3 mb-3" alt="Consultation Icon">
-                <h4>Emergency Care</h4>
-                <p>24/7 emergency services available anytime.</p>
+<!-- Call to Action -->
+<section class="my-5 py-5 bg-primary text-white rounded-3 text-center">
+    <h2 class="fw-bold mb-3">Ready to Take Care of Your Health?</h2>
+    <p class="fs-5 mb-4">Book an appointment today and experience world-class medical care</p>
+    {% if user.is_authenticated %}
+        <a class="btn btn-light btn-lg" href="{% url 'doctors' %}">Book Appointment</a>
+    {% else %}
+        <a class="btn btn-light btn-lg" href="{% url 'login' %}">Login to Book</a>
+    {% endif %}
+</section>
+
+<!-- Facility Section (Placeholder for images) -->
+<section class="my-5">
+    <h2 class="fw-bold text-center mb-5">Our Facilities</h2>
+    <div class="row">
+        <div class="col-md-6 mb-4">
+            <div class="bg-light rounded-3 d-flex align-items-center justify-content-center" style="height: 250px; border: 2px dashed #ccc;">
+                <div class="text-center">
+                    <div style="font-size: 3rem; color: #667eea;">📸</div>
+                    <p class="mt-2">Operation Theater</p>
+                    <small class="text-muted">(Add image here)</small>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-6 mb-4">
+            <div class="bg-light rounded-3 d-flex align-items-center justify-content-center" style="height: 250px; border: 2px dashed #ccc;">
+                <div class="text-center">
+                    <div style="font-size: 3rem; color: #667eea;">📸</div>
+                    <p class="mt-2">Patient Room</p>
+                    <small class="text-muted">(Add image here)</small>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-6 mb-4">
+            <div class="bg-light rounded-3 d-flex align-items-center justify-content-center" style="height: 250px; border: 2px dashed #ccc;">
+                <div class="text-center">
+                    <div style="font-size: 3rem; color: #667eea;">📸</div>
+                    <p class="mt-2">Diagnostic Center</p>
+                    <small class="text-muted">(Add image here)</small>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-6 mb-4">
+            <div class="bg-light rounded-3 d-flex align-items-center justify-content-center" style="height: 250px; border: 2px dashed #ccc;">
+                <div class="text-center">
+                    <div style="font-size: 3rem; color: #667eea;">📸</div>
+                    <p class="mt-2">Reception Area</p>
+                    <small class="text-muted">(Add image here)</small>
+                </div>
             </div>
         </div>
     </div>
-
-    <div class="col-md-4">
-        <div class="card shadow-sm">
-            <div class="card-body">
-                <h4>Lab Services</h4>
-                <img src="{% static 'img/lab.jpg' %}" class="img-fluid rounded-3 mb-3" alt="Consultation Icon">
-                <p>Fast and accurate medical testing.</p>
-            </div>
-        </div>
-    </div>
-</div>
+</section>
 
 {% endblock %}

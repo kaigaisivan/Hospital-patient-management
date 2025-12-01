@@ -7,44 +7,26 @@
 
 <div class="row g-4">
 
-    <!-- Doctor 1 -->
+    {% for doctor in doctors %}
+    <!-- Doctor Card -->
     <div class="col-md-4">
         <div class="card shadow-sm h-100">
-            <img src="{% static 'img/doc3.jpg' %}" class="card-img-top" alt="Doctor Image">
+            {% if doctor.image %}
+                <img src="{{ doctor.image.url }}" class="card-img-top" alt="{{ doctor.name }}">
+            {% else %}
+                <div class="card-img-top bg-secondary d-flex align-items-center justify-content-center" style="height: 250px;">
+                    <span class="text-white">No Image</span>
+                </div>
+            {% endif %}
             <div class="card-body">
-                <h4 class="card-title">Dr. John Mwangi</h4>
-                <p class="text-muted">General Physician</p>
-                <p>Experienced in routine check-ups, diagnosis, and preventive care.</p>
-                <a href="#" class="btn btn-outline-primary btn-sm">Book Appointment</a>
+                <h4 class="card-title">Dr. {{ doctor.name }}</h4>
+                <p class="text-muted">{{ doctor.specialty }}</p>
+                <p>{{ doctor.description }}</p>
+                <a href="{% url 'book_appointment' doctor.id %}" class="btn btn-outline-primary btn-sm">Book Appointment</a>
             </div>
         </div>
     </div>
-
-    <!-- Doctor 2 -->
-    <div class="col-md-4">
-        <div class="card shadow-sm h-100">
-            <img src="{% static 'img/doc.jpg' %}" class="card-img-top" alt="Doctor Image">
-            <div class="card-body">
-                <h4 class="card-title">Dr. Sarah Achieng</h4>
-                <p class="text-muted">Dentist</p>
-                <p>Specialist in dental check-ups, cleaning, and oral health treatment.</p>
-                <a href="#" class="btn btn-outline-primary btn-sm">Book Appointment</a>
-            </div>
-        </div>
-    </div>
-
-    <!-- Doctor 3 -->
-    <div class="col-md-4">
-        <div class="card shadow-sm h-100">
-            <img src="{% static 'img/doctor2.jpg' %}" class="card-img-top" alt="Doctor Image">
-            <div class="card-body">
-                <h4 class="card-title">Dr. Kelvin Otieno</h4>
-                <p class="text-muted">Cardiologist</p>
-                <p>Expert in heart health, cardiovascular diagnosis, and treatment.</p>
-                <a href="#" class="btn btn-outline-primary btn-sm">Book Appointment</a>
-            </div>
-        </div>
-    </div>
+    {% endfor %}
 
 </div>
 {% endblock %}

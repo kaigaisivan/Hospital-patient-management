@@ -1,0 +1,14 @@
+<html>
+  <body style="font-family: Arial, sans-serif; color: #333;">
+    <div style="max-width:700px;margin:0 auto;padding:20px;border:1px solid #e6e6e6;background:#fff;">
+      <h1 style="margin:0 0 12px;color:#0d6efd;">HospitalCare — New Contact</h1>
+      <p style="margin:0 0 8px;"><strong>Name:</strong> {{ contact.full_name }}</p>
+      <p style="margin:0 0 8px;"><strong>Email:</strong> {{ contact.email }}</p>
+      <p style="margin:0 0 12px;"><strong>Submitted at:</strong> {{ contact.created_at }}</p>
+      <hr>
+      <h4 style="margin-top:12px;">Message</h4>
+      <div style="background:#f8f9fa;padding:12px;border-radius:4px;margin-bottom:12px;">{{ contact.message|linebreaks }}</div>
+      <p style="color:#666;font-size:13px;">View this message in the admin dashboard to take action.</p>
+    </div>
+  </body>
+</html>

@@ -127,7 +127,54 @@ USE_TZ = True
 
 STATIC_URL = 'static/'
 
+MEDIA_URL = 'media/'
+MEDIA_ROOT = os.path.join(BASE_DIR, 'media')
+
 # Default primary key field type
 # https://docs.djangoproject.com/en/5.2/ref/settings/#default-auto-field
 
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
+
+# Email configuration
+# By default in development we print emails to console. To enable a real SMTP
+# server, set the environment variables below and restart the app.
+EMAIL_BACKEND = os.environ.get(
+    'DJANGO_EMAIL_BACKEND',
+    'django.core.mail.backends.console.EmailBackend'
+)
+
+EMAIL_HOST = os.environ.get('DJANGO_EMAIL_HOST', 'smtp.gmail.com')
+EMAIL_PORT = int(os.environ.get('DJANGO_EMAIL_PORT', 587))
+EMAIL_USE_TLS = os.environ.get('DJANGO_EMAIL_USE_TLS', 'True').lower() in ('1', 'true', 'yes')
+EMAIL_HOST_USER = os.environ.get('DJANGO_EMAIL_HOST_USER', '')
+EMAIL_HOST_PASSWORD = os.environ.get('DJANGO_EMAIL_HOST_PASSWORD', '')
+
+DEFAULT_FROM_EMAIL = os.environ.get('DJANGO_DEFAULT_FROM_EMAIL', 'no-reply@hospitalcare.local')
+SERVER_EMAIL = DEFAULT_FROM_EMAIL
+
+# Admin recipients for notifications (comma-separated env var) or fallback
+ADMINS_ENV = os.environ.get('DJANGO_ADMINS', '')
+if ADMINS_ENV:
+    # Expect value like: "Name1:email1,Name2:email2" or just emails separated by commas
+    admins = []
+    for part in ADMINS_ENV.split(','):
+        if ':' in part:
+            name, mail = part.split(':', 1)
+            admins.append((name.strip(), mail.strip()))
+        else:
+            admins.append(('Admin', part.strip()))
+    ADMINS = admins
+else:
+    ADMINS = [('Site Admin', 'wainainaj652@gmail.com')]
+
+# Note: For production, set environment variables and consider using a
+# secrets manager or environment-only configuration to avoid committing
+# credentials into source control.
+
+# Custom User Model
+AUTH_USER_MODEL = 'medifiti.CustomUser'
+
+# Login redirects
+LOGIN_URL = 'login'
+LOGIN_REDIRECT_URL = 'dashboard'
+LOGOUT_REDIRECT_URL = 'index'
