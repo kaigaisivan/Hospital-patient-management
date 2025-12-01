@@ -1,0 +1,49 @@
+# Python
+<<<<<<< HEAD
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+
+# Virtual environments
+venv/
+env/
+.env/
+
+# Django
+*.sqlite3
+media/
+staticfiles/
+
+# OS files
+.DS_Store
+=======
+*.pyc
+__pycache__/
+*.pyo
+*.pyd
+*.swp
+
+# Virtual environment
+.venv/
+env/
+venv/
+
+# Django stuff
+db.sqlite3
+/staticfiles/
+/media/
+
+# Logs
+*.log
+
+# IDE/editor settings
+.vscode/
+.idea/
+*.sublime-project
+*.sublime-workspace
+
+# OS files
+.DS_Store
+Thumbs.db
+>>>>>>> origin/admin-dashboard

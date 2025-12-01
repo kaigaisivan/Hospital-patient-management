@@ -12,29 +12,43 @@ https://docs.djangoproject.com/en/5.2/ref/settings/
 
 from pathlib import Path
 # settings.py
-
+import dj_database_url
+from dotenv import load_dotenv
 import os # You usually need this import at the top
+# settings.py
+
+# This is usually True by default in new projects, but confirm it.
+
+
+#  local timezone.
+# For East Africa Time (EAT), use 'Africa/Nairobi'.
+
 
 BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 
-STATICFILES_DIRS = [
-    os.path.join(BASE_DIR, 'static'),
-]
+# STATICFILES_DIRS = [
+#     os.path.join(BASE_DIR, 'static'),
+# ]
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
+
+
 BASE_DIR = Path(__file__).resolve().parent.parent
+load_dotenv(BASE_DIR / ".env")
 
 
 # Quick-start development settings - unsuitable for production
 # See https://docs.djangoproject.com/en/5.2/howto/deployment/checklist/
 
 # SECURITY WARNING: keep the secret key used in production secret!
-SECRET_KEY = 'django-insecure-zk8f!44s%1)(t^iw*@^j2=7)rqsb0yqd9be-v=e_ye%auw8@p3'
+# SECURITY WARNING: keep the secret key used in production secret!
+SECRET_KEY = os.environ.get("SECRET_KEY", "unsafe-secret-key")
 
 # SECURITY WARNING: don't run with debug turned on in production!
-DEBUG = True
+DEBUG = os.environ.get("DEBUG", "False").lower() in ("true", "1")
 
-ALLOWED_HOSTS = []
+# Allow multiple hosts via comma-separated env var
+ALLOWED_HOSTS = os.environ.get("ALLOWED_HOSTS", "*").split(",")
 
 
 # Application definition
@@ -47,6 +61,7 @@ INSTALLED_APPS = [
     'django.contrib.messages',
     'django.contrib.staticfiles',
     'medifiti.apps.MedifitiConfig',
+
 ]
 
 MIDDLEWARE = [
@@ -57,7 +72,11 @@ MIDDLEWARE = [
     'django.contrib.auth.middleware.AuthenticationMiddleware',
     'django.contrib.messages.middleware.MessageMiddleware',
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
+    "whitenoise.middleware.WhiteNoiseMiddleware",
+
 ]
+STATICFILES_STORAGE = "whitenoise.storage.CompressedManifestStaticFilesStorage"
+
 
 ROOT_URLCONF = 'DoctorsBooking.urls'
 
@@ -83,12 +102,21 @@ WSGI_APPLICATION = 'DoctorsBooking.wsgi.application'
 # Database
 # https://docs.djangoproject.com/en/5.2/ref/settings/#databases
 
+# DATABASES = {
+#     'default': {
+#         'ENGINE': 'django.db.backends.sqlite3',
+#         'NAME': BASE_DIR / 'db.sqlite3',
+#     }
+# }
+# Database (Render provides DATABASE_URL env var)
 DATABASES = {
-    'default': {
-        'ENGINE': 'django.db.backends.sqlite3',
-        'NAME': BASE_DIR / 'db.sqlite3',
-    }
+    "default": dj_database_url.config(
+        default=os.environ.get("DATABASE_URL"),
+        conn_max_age=600,
+        ssl_require=True
+    )
 }
+
 
 
 # Password validation
@@ -115,7 +143,7 @@ AUTH_PASSWORD_VALIDATORS = [
 
 LANGUAGE_CODE = 'en-us'
 
-TIME_ZONE = 'UTC'
+TIME_ZONE = 'Africa/Nairobi'
 
 USE_I18N = True
 
@@ -125,9 +153,65 @@ USE_TZ = True
 # Static files (CSS, JavaScript, Images)
 # https://docs.djangoproject.com/en/5.2/howto/static-files/
 
+
+BASE_DIR = Path(__file__).resolve().parent.parent
+
+
+STATIC_ROOT = BASE_DIR / "staticfiles"   # this is the missing setting
+
+
+
+
 STATIC_URL = 'static/'
+
+MEDIA_URL = 'media/'
+MEDIA_ROOT = os.path.join(BASE_DIR, 'media')
 
 # Default primary key field type
 # https://docs.djangoproject.com/en/5.2/ref/settings/#default-auto-field
 
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
+
+# Email configuration
+# By default in development we print emails to console. To enable a real SMTP
+# server, set the environment variables below and restart the app.
+EMAIL_BACKEND = os.environ.get(
+    'DJANGO_EMAIL_BACKEND',
+    'django.core.mail.backends.console.EmailBackend'
+)
+
+EMAIL_HOST = os.environ.get('DJANGO_EMAIL_HOST', 'smtp.gmail.com')
+EMAIL_PORT = int(os.environ.get('DJANGO_EMAIL_PORT', 587))
+EMAIL_USE_TLS = os.environ.get('DJANGO_EMAIL_USE_TLS', 'True').lower() in ('1', 'true', 'yes')
+EMAIL_HOST_USER = os.environ.get('DJANGO_EMAIL_HOST_USER', '')
+EMAIL_HOST_PASSWORD = os.environ.get('DJANGO_EMAIL_HOST_PASSWORD', '')
+
+DEFAULT_FROM_EMAIL = os.environ.get('DJANGO_DEFAULT_FROM_EMAIL', 'no-reply@hospitalcare.local')
+SERVER_EMAIL = DEFAULT_FROM_EMAIL
+
+# Admin recipients for notifications (comma-separated env var) or fallback
+ADMINS_ENV = os.environ.get('DJANGO_ADMINS', '')
+if ADMINS_ENV:
+    # Expect value like: "Name1:email1,Name2:email2" or just emails separated by commas
+    admins = []
+    for part in ADMINS_ENV.split(','):
+        if ':' in part:
+            name, mail = part.split(':', 1)
+            admins.append((name.strip(), mail.strip()))
+        else:
+            admins.append(('Admin', part.strip()))
+    ADMINS = admins
+else:
+    ADMINS = [('Site Admin', 'wainainaj652@gmail.com')]
+
+# Note: For production, set environment variables and consider using a
+# secrets manager or environment-only configuration to avoid committing
+# credentials into source control.
+
+# Custom User Model
+AUTH_USER_MODEL = 'medifiti.CustomUser'
+
+# Login redirects
+LOGIN_URL = 'login'
+LOGIN_REDIRECT_URL = 'dashboard'
+LOGOUT_REDIRECT_URL = 'index'

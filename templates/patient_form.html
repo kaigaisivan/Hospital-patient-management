@@ -1,0 +1,14 @@
+{% extends 'base.html' %}
+{% block content %}
+    <div class="container">
+    <h2>
+        {% if form.instance.pk %} UPDATE DATA {% else %}
+        ADD PATIENT {% endif %}</h2>
+    <form action="" method="POST">
+        {% csrf_token %}
+         {{ form.as_p }}
+        <button type="submit" class="btn btn-primary">
+            {% if form.instance.pk %} UPDATE {% else %}ADD PATIENT {% endif %}</button>
+    </form>
+    </div>
+{% endblock %}

@@ -8,26 +8,103 @@
 
     <!-- Bootstrap -->
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+
+    <!-- Icons -->
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css"/>
+
+    <style>
+        .nav-link {
+            color: white !important;
+            font-weight: 500;
+        }
+        .nav-link:hover {
+            color: #dceaff !important;
+            transition: 0.3s ease;
+        }
+        .navbar-toggler {
+            border-color: rgba(255,255,255,0.7);
+        }
+        .navbar-toggler-icon {
+            filter: brightness(0) invert(1);
+        }
+    </style>
 </head>
 <body>
 
 <!-- Navbar -->
-<nav class="navbar navbar-expand-lg navbar-light bg-primary shadow-sm">
+<nav class="navbar navbar-expand-lg navbar-dark bg-primary shadow-sm sticky-top">
     <div class="container">
-        <a class="navbar-brand fw-bold" href="#">MediFiti</a>
-        <button class="navbar-toggler" type="button" data-bs-toggle="collapse"
-                data-bs-target="#navbarNav">
-            <span class="navbar-toggler-icon"></span>
-        </button>
 
+        <!-- Logo + Brand -->
+        <div class="d-flex align-items-center justify-content-between w-100">
+            <div class="d-flex align-items-center">
+                <img src="{% static 'img/Medifiti logo.png' %}" alt="Medifiti logo"
+                     style="height: 50px; width: auto; margin-right: 10px;">
+                <a class="navbar-brand fw-bold mb-0 text-light" href="{% url 'index' %}">
+                    <i class="fa-solid fa-stethoscope me-2"></i>MediFiti
+                </a>
+            </div>
+
+            <button class="navbar-toggler ms-auto" type="button" data-bs-toggle="collapse"
+                    data-bs-target="#navbarNav">
+                <span class="navbar-toggler-icon"></span>
+            </button>
+        </div>
+
+        <!-- Menu Items -->
         <div class="collapse navbar-collapse" id="navbarNav">
-            <ul class="navbar-nav ms-auto">
+            <ul class="navbar-nav ms-auto mb-2 mb-lg-0 text-center">
+
                 <li class="nav-item"><a class="nav-link" href="{% url 'index' %}">Home</a></li>
                 <li class="nav-item"><a class="nav-link" href="{% url 'about' %}">About Us</a></li>
                 <li class="nav-item"><a class="nav-link" href="{% url 'services' %}">Services</a></li>
                 <li class="nav-item"><a class="nav-link" href="{% url 'contact' %}">Contact Us</a></li>
                 <li class="nav-item"><a class="nav-link" href="{% url 'doctors' %}">Doctors</a></li>
                 <li class="nav-item"><a class="nav-link" href="{% url 'departments' %}">Departments</a></li>
+                
+                {% if user.is_authenticated %}
+                    <li class="nav-item dropdown">
+                        <a class="nav-link dropdown-toggle" href="#" id="userDropdown" role="button" data-bs-toggle="dropdown">
+                            {{ user.username }} ({{ user.get_role_display }})
+                        </a>
+                        <ul class="dropdown-menu" aria-labelledby="userDropdown">
+                            {% if user.role == 'admin' %}
+                                <li><a class="dropdown-item" href="{% url 'admin_dashboard' %}">Admin Dashboard</a></li>
+                            {% elif user.role == 'doctor' %}
+                                <li><a class="dropdown-item" href="{% url 'doctor_dashboard' %}">Doctor Dashboard</a></li>
+                            {% elif user.role == 'patient' %}
+                                <li><a class="dropdown-item" href="{% url 'patient_dashboard' %}">My Dashboard</a></li>
+                            {% endif %}
+                            <li><hr class="dropdown-divider"></li>
+                            <li><a class="dropdown-item" href="{% url 'logout' %}">Logout</a></li>
+                        </ul>
+                    </li>
+                {% else %}
+                    <li class="nav-item"><a class="nav-link btn btn-light btn-sm ms-2" href="{% url 'login' %}">Login</a></li>
+                    <li class="nav-item"><a class="nav-link btn btn-outline-light btn-sm ms-2" href="{% url 'register' %}">Register</a></li>
+                {% endif %}
+
+                <!-- Book Appointment (your feature) -->
+                <li class="nav-item">
+                    <a class="nav-link" href="{% url 'appointment' %}">Book Appointment</a>
+                </li>
+
+                <!-- User Authentication Menu -->
+                {% if user.is_authenticated %}
+                    <li class="nav-item"><a class="nav-link" href="{% url 'profile' %}">User Profile</a></li>
+                    <li class="nav-item"><a class="nav-link" href="{% url 'logout' %}">Logout</a></li>
+                {% else %}
+                    <li class="nav-item"><a class="nav-link" href="{% url 'register' %}">Register</a></li>
+                    <li class="nav-item"><a class="nav-link" href="{% url 'login' %}">Login</a></li>
+                {% endif %}
+
+                <!-- Admin Dashboard Button (your feature) -->
+                <li class="nav-item">
+                    <a class="btn btn-light ms-lg-3 fw-bold px-3 py-1" href="{% url 'admin_dashboard' %}">
+                        Admin Dashboard
+                    </a>
+                </li>
 
             </ul>
         </div>
@@ -42,7 +119,7 @@
 
 <!-- Footer -->
 <footer class="bg-primary text-light text-center p-4 mt-5">
-    <p class="mb-0">© 2025 HospitalCare • All Rights Reserved</p>
+    <p class="mb-0">© 2025 MediFiti Hospital • All Rights Reserved</p>
 </footer>
 
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>

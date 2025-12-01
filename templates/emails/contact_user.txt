@@ -1,0 +1,12 @@
+Hello {{ contact.full_name }},
+
+Thank you for contacting HospitalCare. We received your message and will get back to you shortly.
+
+Summary of your message:
+
+{{ contact.message }}
+
+If you need immediate assistance, please reply to this email or call us.
+
+Regards,
+HospitalCare Team
