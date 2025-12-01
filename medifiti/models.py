@@ -5,7 +5,9 @@ from django.db import models
 from django.db.models.signals import post_save
 from django.dispatch import receiver
 from django.utils import timezone
-
+from django.utils.text import slugify
+from django.urls import reverse
+from django.shortcuts import render
 
 phone_regex = RegexValidator(
     regex=r'^\+?1?\d{9,15}$',
@@ -61,6 +63,8 @@ class Contact(models.Model):
         ordering = ['-created_at']
 
 
+# python
+# File: `medifiti/models.py` — replace the Doctor class with this version
 class Doctor(models.Model):
     user = models.OneToOneField(
         settings.AUTH_USER_MODEL, on_delete=models.CASCADE,
@@ -71,21 +75,50 @@ class Doctor(models.Model):
     description = models.TextField(blank=True)
     image = models.ImageField(upload_to='doctors/', null=True, blank=True)
 
+    # Add timestamps so templates and cache-busting work and so admin can sort
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+
     def __str__(self):
         return f"Dr. {self.name}"
 
 
+
 class Service(models.Model):
-    """Admin-manageable services offered by the hospital."""
     title = models.CharField(max_length=200)
-    slug = models.SlugField(max_length=200, unique=True)
+    slug = models.SlugField(max_length=200, unique=True, blank=True)
     short_description = models.TextField(blank=True)
     description = models.TextField(blank=True)
     image = models.ImageField(upload_to='services/', null=True, blank=True)
+    active = models.BooleanField(default=True)
     created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+
+    def save(self, *args, **kwargs):
+        if not self.slug:
+            base = slugify(self.title)
+            slug = base
+            n = 1
+            while Service.objects.filter(slug=slug).exists():
+                slug = f"{base}-{n}"
+                n += 1
+            self.slug = slug
+        super().save(*args, **kwargs)
 
     def __str__(self):
         return self.title
+
+    def get_absolute_url(self):
+        return reverse('service_detail', args=[self.slug])
+    def services(request):
+        """
+        Return active services ordered by most recently updated first so admin edits
+        appear immediately on the public listing.
+        """
+        services_qs = Service.objects.filter(active=True).order_by('-updated_at')
+        return render(request, 'services.html', {'services': services_qs})
+
+    # File: `templates/services.html` (Django template / HTML)
 
 
 class LabSample(models.Model):

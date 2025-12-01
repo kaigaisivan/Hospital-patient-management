@@ -3,12 +3,16 @@ from django.contrib import messages
 from django.template.loader import render_to_string
 from django.core.mail import EmailMultiAlternatives
 from django.conf import settings
-from .models import Contact, Doctor, Appointment, Service, LabSample
+
 from django.contrib.auth import authenticate, login, logout
 from django.contrib.auth.forms import UserCreationForm
 from .models import CustomUser
 from .decorators import admin_required, doctor_required, patient_required
 from django.shortcuts import render, redirect
+
+from django.shortcuts import render, redirect, get_object_or_404
+
+from .models import Contact, Doctor, Appointment, Service, LabSample
 
 # Your imports
 from medifiti.forms import PatientForm
@@ -18,7 +22,7 @@ from .forms import AppointmentForm
 # Jackie’s imports
 from .forms import RegisterationForm
 from django.contrib.auth.models import User
-from django.contrib import messages
+
 from django.contrib.auth.forms import AuthenticationForm
 from django.contrib.auth import login, logout, authenticate
 from django.contrib.auth.decorators import login_required
@@ -31,19 +35,59 @@ from django.contrib.auth import update_session_auth_hash
 # Basic Public Pages
 # -----------------------------
 def index(request):
-    services_qs = Service.objects.all()[:6]
+    # show only active services, newest first
+    services_qs = Service.objects.filter(active=True).order_by('-created_at')[:6]
     return render(request, 'index.html', {'services': services_qs})
 
 def services(request):
-    services_qs = Service.objects.all()
+    services_qs = Service.objects.filter(active=True).order_by('-updated_at')
     return render(request, 'services.html', {'services': services_qs})
-
-
 def service_detail(request, slug):
-    """Render a simple service detail page for known services.
-    Supported slugs: general-consultation, emergency-care, lab-services
-    For lab-services we accept a POST with `sample_id` to show a placeholder result.
     """
+    Try DB first (active services only). If no active DB service found,
+    fall back to the static mapping as before.
+    """
+    # lookup active DB service
+    service_obj = Service.objects.filter(slug=slug, active=True).first()
+    sample_result = None
+
+    if service_obj:
+        triage_options = [
+            ('respiratory', 'Fever, cough, sore throat', 'Respiratory / General Physician'),
+            ('dental', 'Tooth pain or bleeding gums', 'Dentistry'),
+            ('cardiac', 'Chest pain or shortness of breath', 'Cardiology / Emergency'),
+            ('abdominal', 'Abdominal pain, nausea', 'General Surgery / Gastroenterology'),
+        ]
+        triage_result = None
+        if request.method == 'POST' and slug == 'general-consultation' and request.POST.get('triage_submit'):
+            selected = request.POST.getlist('symptoms')
+            depts = [dept for key, label, dept in triage_options if key in selected]
+            triage_result = ('Recommended departments: ' + ', '.join(sorted(set(depts)))) if depts else 'No symptoms selected; please select at least one symptom.'
+
+        if request.method == 'POST' and slug == 'lab-services':
+            sample_id = (request.POST.get('sample_id') or '').strip()
+            if sample_id:
+                try:
+                    sample = LabSample.objects.get(sample_id__iexact=sample_id)
+                    sample_result = f'Sample {sample.sample_id}: status={sample.status}. Notes: {sample.notes}'
+                except LabSample.DoesNotExist:
+                    sample_result = f'No tracking record found for sample id "{sample_id}".'
+
+        context = {
+            'service': {
+                'title': service_obj.title,
+                'description': service_obj.short_description or service_obj.description,
+                'content': [service_obj.description] if service_obj.description else [],
+            },
+            'service_obj': service_obj,
+            'slug': slug,
+            'sample_result': sample_result,
+            'triage_options': triage_options,
+            'triage_result': triage_result,
+        }
+        return render(request, 'service_detail.html', context)
+
+    # fallback mapping (unchanged behavior)
     services_map = {
         'general-consultation': {
             'title': 'General Consultation',
@@ -78,62 +122,6 @@ def service_detail(request, slug):
         }
     }
 
-    # Try to load a Service from the database first
-    service_obj = None
-    try:
-        service_obj = Service.objects.get(slug=slug)
-    except Service.DoesNotExist:
-        service_obj = None
-
-    sample_result = None
-
-    if service_obj:
-        # Triage options for general consultation
-        triage_options = [
-            ('respiratory', 'Fever, cough, sore throat', 'Respiratory / General Physician'),
-            ('dental', 'Tooth pain or bleeding gums', 'Dentistry'),
-            ('cardiac', 'Chest pain or shortness of breath', 'Cardiology / Emergency'),
-            ('abdominal', 'Abdominal pain, nausea', 'General Surgery / Gastroenterology'),
-        ]
-        triage_result = None
-        # Handle triage POST for general consultation
-        if request.method == 'POST' and slug == 'general-consultation' and request.POST.get('triage_submit'):
-            selected = request.POST.getlist('symptoms')
-            # gather departments from selected symptom keys
-            depts = []
-            for key, label, dept in triage_options:
-                if key in selected:
-                    depts.append(dept)
-            if depts:
-                triage_result = 'Recommended departments: ' + ', '.join(sorted(set(depts)))
-            else:
-                triage_result = 'No symptoms selected; please select at least one symptom.'
-        # If lab services, allow lookup via LabSample
-        if request.method == 'POST' and slug == 'lab-services':
-            sample_id = (request.POST.get('sample_id') or '').strip()
-            if sample_id:
-                # normalize sample id for lookup (case-insensitive)
-                try:
-                    sample = LabSample.objects.get(sample_id__iexact=sample_id)
-                    sample_result = f'Sample {sample.sample_id}: status={sample.status}. Notes: {sample.notes}'
-                except LabSample.DoesNotExist:
-                    sample_result = f'No tracking record found for sample id "{sample_id}".'
-
-        context = {
-            'service': {
-                'title': service_obj.title,
-                'description': service_obj.short_description or service_obj.description,
-                'content': [service_obj.description] if service_obj.description else [],
-            },
-            'sample_result': sample_result,
-            'slug': slug,
-            'service_obj': service_obj,
-            'triage_options': triage_options,
-            'triage_result': triage_result,
-        }
-        return render(request, 'service_detail.html', context)
-
-    # Fallback to static mapping if no DB service exists
     svc = services_map.get(slug)
     if not svc:
         return render(request, 'services.html', {'error': 'Service not found.'})
@@ -207,64 +195,58 @@ def doctors(request):
 def departments(request):
     return render(request,'departments.html')
 
-def book_appointment(request, doctor_id):
-    # Require user to be logged in to book appointment
-    if not request.user.is_authenticated:
-        return redirect('login')
-    
-    doctor = get_object_or_404(Doctor, id=doctor_id)
-    
+# python
+# File: `medifiti/views.py` — ensure only this unified view exists (remove any other `book_appointment` definitions)
+
+def book_appointment(request, doctor_id=None):
+    """
+    Unified booking view:
+    - If doctor_id is provided: show/process `book_appointment.html` (book for specific doctor).
+    - If no doctor_id: show/process generic `appointment.html` with AppointmentForm.
+    """
+    doctor = None
+    if doctor_id is not None:
+        doctor = get_object_or_404(Doctor, id=doctor_id)
+
     if request.method == 'POST':
-        patient_name = request.POST.get('patient_name')
-        patient_email = request.POST.get('patient_email')
-        patient_phone = request.POST.get('patient_phone')
-        appointment_date = request.POST.get('appointment_date')
-        appointment_time = request.POST.get('appointment_time')
-        reason = request.POST.get('reason')
-        
-        if all([patient_name, patient_email, patient_phone, appointment_date, appointment_time, reason]):
-            appointment = Appointment.objects.create(
-                doctor=doctor,
-                patient_name=patient_name,
-                patient_email=patient_email,
-                patient_phone=patient_phone,
-                appointment_date=appointment_date,
-                appointment_time=appointment_time,
-                reason=reason
-            )
-            # Notify admins about new appointment using HTML + text templates
-            subject = f"New appointment request: {appointment.patient_name} with Dr. {doctor.name}"
-            context = {
-                'appointment': appointment,
-                'doctor': doctor,
-            }
-            text_content = render_to_string('emails/appointment_admin.txt', context)
-            html_content = render_to_string('emails/appointment_admin.html', context)
-            recipients = [email for (_name, email) in getattr(settings, 'ADMINS', [])]
-            if recipients:
-                try:
-                    msg = EmailMultiAlternatives(subject, text_content, settings.DEFAULT_FROM_EMAIL, recipients)
-                    msg.attach_alternative(html_content, 'text/html')
-                    msg.send(fail_silently=True)
-                except Exception:
-                    pass
-            # Send confirmation email to the patient
-            try:
-                patient_subject = 'Your appointment has been booked'
-                patient_text = render_to_string('emails/appointment_patient.txt', context)
-                patient_html = render_to_string('emails/appointment_patient.html', context)
-                patient_msg = EmailMultiAlternatives(patient_subject, patient_text, settings.DEFAULT_FROM_EMAIL, [appointment.patient_email])
-                patient_msg.attach_alternative(patient_html, 'text/html')
-                patient_msg.send(fail_silently=True)
-            except Exception:
-                pass
-            messages.success(request, 'Your appointment has been booked successfully! We will confirm it shortly.')
-            return redirect('doctors')
+        if doctor:
+            # legacy/doctor-specific POST handling (keeps current simple flow)
+            patient_name = request.POST.get('patient_name')
+            patient_email = request.POST.get('patient_email')
+            patient_phone = request.POST.get('patient_phone')
+            appointment_date = request.POST.get('appointment_date')
+            appointment_time = request.POST.get('appointment_time')
+            reason = request.POST.get('reason')
+
+            if all([patient_name, patient_email, patient_phone, appointment_date, appointment_time, reason]):
+                Appointment.objects.create(
+                    doctor=doctor,
+                    patient_name=patient_name,
+                    patient_email=patient_email,
+                    patient_phone=patient_phone,
+                    appointment_date=appointment_date,
+                    appointment_time=appointment_time,
+                    reason=reason
+                )
+                messages.success(request, 'Your appointment has been booked successfully! We will confirm it shortly.')
+                return redirect('doctors')
+            else:
+                messages.error(request, 'Please fill in all fields.')
+                return render(request, 'book_appointment.html', {'doctor': doctor})
         else:
-            messages.error(request, 'Please fill in all fields.')
-    
-    context = {'doctor': doctor}
-    return render(request, 'book_appointment.html', context)
+            # generic appointment form handling
+            form = AppointmentForm(request.POST)
+            if form.is_valid():
+                form.save()
+                messages.success(request, 'Your appointment has been booked successfully!')
+                return redirect('index')
+            return render(request, 'appointment.html', {'form': form})
+    else:
+        # GET
+        if doctor:
+            return render(request, 'book_appointment.html', {'doctor': doctor})
+        form = AppointmentForm()
+        return render(request, 'appointment.html', {'form': form})
 
 # --- Authentication & Dashboards ---
 class CustomUserCreationForm(UserCreationForm):

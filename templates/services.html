@@ -1,23 +1,71 @@
 {% extends 'base.html' %}
+{% load static %}
 
 {% block title %}Our Services - HospitalCare{% endblock %}
 
 {% block content %}
-<h2 class="mb-4">Our Medical Services</h2>
-
-<div class="row">
-    {% for svc in services %}
-    <div class="col-md-4 mb-3">
-        <div class="card h-100 shadow-sm">
+<div class="container my-5">
+  <h2 class="fw-bold text-center mb-5">Our Services</h2>
+  <div class="row">
+    {% if services %}
+      {% for service in services %}
+        <div class="col-md-4 mb-4">
+          <div class="card shadow-sm h-100">
+            {% if service.image %}
+              <img src="{{ service.image.url }}?v={{ service.updated_at|date:"U" }}" class="card-img-top" alt="{{ service.title }}" style="height: 200px; object-fit: cover;">
+            {% else %}
+              <div class="bg-light card-img-top d-flex align-items-center justify-content-center" style="height: 200px; background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white;">
+                <h5 class="text-center mb-0">{{ service.title }}</h5>
+              </div>
+            {% endif %}
             <div class="card-body">
-                <h5 class="card-title">{{ svc.title }}</h5>
-                <p class="card-text">{{ svc.short_description }}</p>
-                <a href="{% url 'service_detail' svc.slug %}" class="stretched-link">Learn more</a>
+              <h5 class="card-title">{{ service.title }}</h5>
+              <p class="card-text">{{ service.short_description|default:service.description|truncatechars:100 }}</p>
+              <a href="{% url 'service_detail' service.slug %}" class="btn btn-primary btn-sm">Learn More</a>
             </div>
+          </div>
         </div>
-    </div>
-    {% empty %}
-    <p>No services available yet.</p>
-    {% endfor %}
+      {% endfor %}
+    {% else %}
+      <div class="col-md-4 mb-4">
+        <div class="card shadow-sm h-100">
+          <div class="bg-light card-img-top d-flex align-items-center justify-content-center" style="height: 200px; background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white;">
+            <h5 class="text-center mb-0">General Consultation</h5>
+          </div>
+          <div class="card-body">
+            <h5 class="card-title">General Consultation</h5>
+            <p class="card-text">Get examined by our experienced doctors for routine check-ups and diagnosis.</p>
+            <a href="{% url 'service_detail' 'general-consultation' %}" class="btn btn-primary btn-sm">Learn More</a>
+          </div>
+        </div>
+      </div>
+
+      <div class="col-md-4 mb-4">
+        <div class="card shadow-sm h-100">
+          <div class="bg-light card-img-top d-flex align-items-center justify-content-center" style="height: 200px; background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%); color: white;">
+            <h5 class="text-center mb-0">Emergency Care</h5>
+          </div>
+          <div class="card-body">
+            <h5 class="card-title">Emergency Care</h5>
+            <p class="card-text">24/7 emergency services with rapid response and ambulance availability.</p>
+            <a href="{% url 'service_detail' 'emergency-care' %}" class="btn btn-primary btn-sm">Learn More</a>
+          </div>
+        </div>
+      </div>
+
+      <div class="col-md-4 mb-4">
+        <div class="card shadow-sm h-100">
+          <div class="bg-light card-img-top d-flex align-items-center justify-content-center" style="height: 200px; background: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%); color: white;">
+            <h5 class="text-center mb-0">Lab Services</h5>
+          </div>
+          <div class="card-body">
+            <h5 class="card-title">Lab Services</h5>
+            <p class="card-text">Comprehensive laboratory testing with fast turnaround times and accurate results.</p>
+            <a href="{% url 'service_detail' 'lab-services' %}" class="btn btn-primary btn-sm">Learn More</a>
+          </div>
+        </div>
+      </div>
+    {% endif %}
+  </div>
 </div>
 {% endblock %}
