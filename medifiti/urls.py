@@ -30,4 +30,5 @@ urlpatterns = [
     path('change-password/', views.change_password, name='change-password'),
     path('emergency-contact/', views.emergency_contact, name='emergency-contact'),
     path('medical-files/', views.medical_files, name='medical-files'),
+
 ]
