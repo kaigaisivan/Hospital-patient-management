@@ -1,0 +1,10 @@
+New appointment request
+
+Patient: {{ appointment.patient_name }}
+Email: {{ appointment.patient_email }}
+Phone: {{ appointment.patient_phone }}
+Doctor: Dr. {{ doctor.name }} ({{ doctor.specialty }})
+Date: {{ appointment.appointment_date }} at {{ appointment.appointment_time }}
+
+Reason:
+{{ appointment.reason }}

@@ -1,0 +1,74 @@
+{% extends 'base.html' %}
+
+{% block title %}{{ service.title }} - HospitalCare{% endblock %}
+
+{% block content %}
+<h2 class="mb-3">{{ service.title }}</h2>
+<p class="lead">{{ service.description }}</p>
+
+{% for p in service.content %}
+    <p>{{ p }}</p>
+{% endfor %}
+
+{% if service.symptoms %}
+    <h4 class="mt-4">Common symptoms and suggested department</h4>
+    <ul>
+    {% for s,d in service.symptoms %}
+        <li><strong>{{ s }}</strong> — {{ d }}</li>
+    {% endfor %}
+    </ul>
+{% endif %}
+
+{% if slug == 'general-consultation' %}
+    <div class="mt-4">
+        <h4>Symptom Triage</h4>
+        <p>Select symptoms you are experiencing and click "Check" to see suggested departments.</p>
+        <form method="POST">
+            {% csrf_token %}
+            <input type="hidden" name="triage_submit" value="1">
+            <div class="mb-3">
+                {% for key,label,dept in triage_options %}
+                    <div class="form-check">
+                        <input class="form-check-input" type="checkbox" name="symptoms" value="{{ key }}" id="sym_{{ key }}">
+                        <label class="form-check-label" for="sym_{{ key }}">{{ label }}</label>
+                    </div>
+                {% endfor %}
+            </div>
+            <button class="btn btn-primary">Check</button>
+        </form>
+        {% if triage_result %}
+            <div class="alert alert-info mt-3">{{ triage_result }}</div>
+        {% endif %}
+    </div>
+{% endif %}
+
+{% if slug == 'emergency-care' %}
+    <div class="mt-4">
+        <a href="tel:{{ service.phone }}" class="btn btn-danger btn-lg">Call Ambulance: {{ service.phone }}</a>
+    </div>
+{% endif %}
+
+{% if slug == 'lab-services' %}
+    <div class="mt-4">
+        <h4>Sample tracking (placeholder)</h4>
+        <form method="POST" class="row g-2">
+            {% csrf_token %}
+            <div class="col-auto">
+                <input type="text" name="sample_id" class="form-control" placeholder="Enter sample ID">
+            </div>
+            <div class="col-auto">
+                <button class="btn btn-primary">Track</button>
+            </div>
+        </form>
+        {% if sample_result %}
+            <div class="alert alert-info mt-3">{{ sample_result }}</div>
+        {% endif %}
+    </div>
+{% endif %}
+
+<div class="mt-4">
+    <a href="{% url 'doctors' %}" class="btn btn-outline-primary">Book an appointment</a>
+    <a href="{% url 'services' %}" class="btn btn-link">Back to services</a>
+</div>
+
+{% endblock %}

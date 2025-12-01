@@ -1,0 +1,8 @@
+New contact submission
+
+Name: {{ contact.full_name }}
+Email: {{ contact.email }}
+Submitted at: {{ contact.created_at }}
+
+Message:
+{{ contact.message }}

@@ -1,0 +1,10 @@
+{% extends "admin/index.html" %}
+{% load admin_extras %}
+
+{% block content %}
+  <div class="module">
+    <h2>Recent Contacts</h2>
+    {% recent_contacts 5 %}
+  </div>
+  {{ block.super }}
+{% endblock %}

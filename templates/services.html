@@ -6,31 +6,18 @@
 <h2 class="mb-4">Our Medical Services</h2>
 
 <div class="row">
+    {% for svc in services %}
     <div class="col-md-4 mb-3">
         <div class="card h-100 shadow-sm">
             <div class="card-body">
-                <h5 class="card-title">General Consultation</h5>
-                <p class="card-text">Professional health check-ups and diagnosis.</p>
+                <h5 class="card-title">{{ svc.title }}</h5>
+                <p class="card-text">{{ svc.short_description }}</p>
+                <a href="{% url 'service_detail' svc.slug %}" class="stretched-link">Learn more</a>
             </div>
         </div>
     </div>
-
-    <div class="col-md-4 mb-3">
-        <div class="card h-100 shadow-sm">
-            <div class="card-body">
-                <h5 class="card-title">Emergency Care</h5>
-                <p class="card-text">24/7 emergency services with rapid response.</p>
-            </div>
-        </div>
-    </div>
-
-    <div class="col-md-4 mb-3">
-        <div class="card h-100 shadow-sm">
-            <div class="card-body">
-                <h5 class="card-title">Laboratory Services</h5>
-                <p class="card-text">Accurate lab tests and medical diagnostics.</p>
-            </div>
-        </div>
-    </div>
+    {% empty %}
+    <p>No services available yet.</p>
+    {% endfor %}
 </div>
 {% endblock %}
