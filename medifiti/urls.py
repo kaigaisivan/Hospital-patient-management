@@ -29,6 +29,7 @@ urlpatterns = [
     path('logout/', views.logout_user, name='logout'),
     path('doctor-dashboard/', views.doctor_dashboard, name='doctor_dashboard'),
     path('patient-dashboard/', views.patient_dashboard, name='patient_dashboard'),
+    path('doctor/profile/', views.doctor_profile, name='doctor_profile'),
 
     # Dashboard feature views
     path('appointments/', views.appointments, name='appointments'),

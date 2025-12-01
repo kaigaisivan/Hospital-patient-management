@@ -34,81 +34,49 @@
 
 <!-- Navbar -->
 <nav class="navbar navbar-expand-lg navbar-dark bg-primary shadow-sm sticky-top">
-    <div class="container">
+  <div class="container">
+    <a class="navbar-brand fw-bold mb-0 text-light" href="{% url 'index' %}">
+      <i class="fa-solid fa-stethoscope me-2"></i>MediFiti
+    </a>
+    <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
+      <span class="navbar-toggler-icon"></span>
+    </button>
 
-        <!-- Logo + Brand -->
-        <div class="d-flex align-items-center justify-content-between w-100">
-            <div class="d-flex align-items-center">
-                <img src="{% static 'img/Medifiti logo.png' %}" alt="Medifiti logo"
-                     style="height: 50px; width: auto; margin-right: 10px;">
-                <a class="navbar-brand fw-bold mb-0 text-light" href="{% url 'index' %}">
-                    <i class="fa-solid fa-stethoscope me-2"></i>MediFiti
-                </a>
-            </div>
+    <div class="collapse navbar-collapse" id="navbarNav">
+      <ul class="navbar-nav ms-auto mb-2 mb-lg-0">
+        <li class="nav-item"><a class="nav-link" href="{% url 'index' %}">Home</a></li>
+        <li class="nav-item"><a class="nav-link" href="{% url 'about' %}">About</a></li>
+        <li class="nav-item"><a class="nav-link" href="{% url 'services' %}">Services</a></li>
+        <li class="nav-item"><a class="nav-link" href="{% url 'contact' %}">Contact</a></li>
+        <li class="nav-item"><a class="nav-link" href="{% url 'doctors' %}">Doctors</a></li>
 
-            <button class="navbar-toggler ms-auto" type="button" data-bs-toggle="collapse"
-                    data-bs-target="#navbarNav">
-                <span class="navbar-toggler-icon"></span>
-            </button>
-        </div>
-
-        <!-- Menu Items -->
-        <div class="collapse navbar-collapse" id="navbarNav">
-            <ul class="navbar-nav ms-auto mb-2 mb-lg-0 text-center">
-
-                <li class="nav-item"><a class="nav-link" href="{% url 'index' %}">Home</a></li>
-                <li class="nav-item"><a class="nav-link" href="{% url 'about' %}">About Us</a></li>
-                <li class="nav-item"><a class="nav-link" href="{% url 'services' %}">Services</a></li>
-                <li class="nav-item"><a class="nav-link" href="{% url 'contact' %}">Contact Us</a></li>
-                <li class="nav-item"><a class="nav-link" href="{% url 'doctors' %}">Doctors</a></li>
-                <li class="nav-item"><a class="nav-link" href="{% url 'departments' %}">Departments</a></li>
-                
-                {% if user.is_authenticated %}
-                    <li class="nav-item dropdown">
-                        <a class="nav-link dropdown-toggle" href="#" id="userDropdown" role="button" data-bs-toggle="dropdown">
-                            {{ user.username }} ({{ user.get_role_display }})
-                        </a>
-                        <ul class="dropdown-menu" aria-labelledby="userDropdown">
-                            {% if user.role == 'admin' %}
-                                <li><a class="dropdown-item" href="{% url 'admin_dashboard' %}">Admin Dashboard</a></li>
-                            {% elif user.role == 'doctor' %}
-                                <li><a class="dropdown-item" href="{% url 'doctor_dashboard' %}">Doctor Dashboard</a></li>
-                            {% elif user.role == 'patient' %}
-                                <li><a class="dropdown-item" href="{% url 'patient_dashboard' %}">My Dashboard</a></li>
-                            {% endif %}
-                            <li><hr class="dropdown-divider"></li>
-                            <li><a class="dropdown-item" href="{% url 'logout' %}">Logout</a></li>
-                        </ul>
-                    </li>
-                {% else %}
-                    <li class="nav-item"><a class="nav-link btn btn-light btn-sm ms-2" href="{% url 'login' %}">Login</a></li>
-                    <li class="nav-item"><a class="nav-link btn btn-outline-light btn-sm ms-2" href="{% url 'register' %}">Register</a></li>
-                {% endif %}
-
-                <!-- Book Appointment (your feature) -->
-                <li class="nav-item">
-                    <a class="nav-link" href="{% url 'appointment' %}">Book Appointment</a>
-                </li>
-
-                <!-- User Authentication Menu -->
-                {% if user.is_authenticated %}
-                    <li class="nav-item"><a class="nav-link" href="{% url 'profile' %}">User Profile</a></li>
-                    <li class="nav-item"><a class="nav-link" href="{% url 'logout' %}">Logout</a></li>
-                {% else %}
-                    <li class="nav-item"><a class="nav-link" href="{% url 'register' %}">Register</a></li>
-                    <li class="nav-item"><a class="nav-link" href="{% url 'login' %}">Login</a></li>
-                {% endif %}
-
-                <!-- Admin Dashboard Button (your feature) -->
-                <li class="nav-item">
-                    <a class="btn btn-light ms-lg-3 fw-bold px-3 py-1" href="{% url 'admin_dashboard' %}">
-                        Admin Dashboard
-                    </a>
-                </li>
-
+        {% if user.is_authenticated %}
+          <li class="nav-item dropdown">
+            <a class="nav-link dropdown-toggle" href="#" id="userDropdown" role="button" data-bs-toggle="dropdown">
+              {{ user.username }} ({{ user.get_role_display }})
+            </a>
+            <ul class="dropdown-menu dropdown-menu-end" aria-labelledby="userDropdown">
+              {% if user.role == 'admin' %}
+                <li><a class="dropdown-item" href="{% url 'admin_dashboard' %}">Admin Dashboard</a></li>
+              {% elif user.role == 'doctor' %}
+                <li><a class="dropdown-item" href="{% url 'doctor_dashboard' %}">Doctor Dashboard</a></li>
+                <li><a class="dropdown-item" href="{% url 'doctor_profile' %}">Edit Profile</a></li>
+              {% elif user.role == 'patient' %}
+                <li><a class="dropdown-item" href="{% url 'patient_dashboard' %}">My Dashboard</a></li>
+              {% endif %}
+              <li><hr class="dropdown-divider"></li>
+              <li><a class="dropdown-item" href="{% url 'logout' %}">Logout</a></li>
             </ul>
-        </div>
+          </li>
+        {% else %}
+          <li class="nav-item"><a class="nav-link btn btn-light btn-sm ms-2" href="{% url 'login' %}">Login</a></li>
+          <li class="nav-item"><a class="nav-link btn btn-outline-light btn-sm ms-2" href="{% url 'register' %}">Register</a></li>
+        {% endif %}
+
+        <li class="nav-item"><a class="nav-link" href="{% url 'appointment' %}">Book Appointment</a></li>
+      </ul>
     </div>
+  </div>
 </nav>
 
 <!-- Main Content -->

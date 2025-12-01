@@ -1,14 +1,18 @@
 {% extends 'base.html' %}
 {% block content %}
 <div class="container mt-5">
-  <h2>Doctor Dashboard</h2>
+  <div class="d-flex justify-content-between align-items-center mb-3">
+    <h2>Doctor Dashboard</h2>
+    <a class="btn btn-outline-primary" href="{% url 'doctor_profile' %}">Edit Profile & Services</a>
+  </div>
+
   {% if doctor %}
     <h4>Welcome, Dr. {{ doctor.name }}</h4>
-    <h5>Your Appointments</h5>
-    <table class="table table-bordered">
+    <h5 class="mt-4">Appointments</h5>
+    <table class="table table-striped">
       <thead>
         <tr>
-          <th>Patient Name</th>
+          <th>Patient</th>
           <th>Date</th>
           <th>Time</th>
           <th>Reason</th>
@@ -16,13 +20,21 @@
         </tr>
       </thead>
       <tbody>
-        {% for appointment in appointments %}
+        {% for appt in appointments %}
         <tr>
-          <td>{{ appointment.patient_name }}</td>
-          <td>{{ appointment.appointment_date }}</td>
-          <td>{{ appointment.appointment_time }}</td>
-          <td>{{ appointment.reason|truncatechars:40 }}</td>
-          <td>{{ appointment.status }}</td>
+          <td>
+            {% if appt.patient_profile %}
+              <a href="{% url 'patient_profile_detail' appt.patient_profile.id %}">{{ appt.patient_profile.user.get_full_name|default:appt.patient_profile.user.username }}</a>
+            {% elif appt.patient_user %}
+              <a href="{% url 'patient_profile_detail' appt.patient_user.patient_profile.id %}">{{ appt.patient_user.get_full_name|default:appt.patient_user.username }}</a>
+            {% else %}
+              {{ appt.patient_name }}
+            {% endif %}
+          </td>
+          <td>{{ appt.appointment_date }}</td>
+          <td>{{ appt.appointment_time }}</td>
+          <td>{{ appt.reason|truncatechars:60 }}</td>
+          <td>{{ appt.status|capfirst }}</td>
         </tr>
         {% empty %}
         <tr><td colspan="5">No appointments yet.</td></tr>
@@ -30,7 +42,7 @@
       </tbody>
     </table>
   {% else %}
-    <div class="alert alert-warning">No doctor profile found for your account.</div>
+    <div class="alert alert-warning">No doctor profile found.</div>
   {% endif %}
 </div>
 {% endblock %}

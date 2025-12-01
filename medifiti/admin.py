@@ -1,6 +1,5 @@
 from django.contrib import admin
 from django.utils.html import format_html
-from django.contrib.auth import get_user_model
 from django.contrib.auth.admin import UserAdmin
 from django.utils.translation import gettext_lazy as _
 
@@ -9,7 +8,7 @@ from .models import (
     Service, Doctor, LabSample, Contact
 )
 
-# --- CustomUser admin ---
+
 class CustomUserAdmin(UserAdmin):
     model = CustomUser
     list_display = ('username', 'email', 'role', 'is_staff', 'is_active')
@@ -32,10 +31,10 @@ class CustomUserAdmin(UserAdmin):
         }),
     )
 
+
 admin.site.register(CustomUser, CustomUserAdmin)
 
 
-# --- Service admin ---
 @admin.register(Service)
 class ServiceAdmin(admin.ModelAdmin):
     list_display = ('title', 'slug', 'active', 'created_at', 'updated_at')
@@ -54,16 +53,41 @@ class ServiceAdmin(admin.ModelAdmin):
     image_preview.short_description = "Image preview"
 
 
-# --- Doctor admin ---
+class AppointmentInline(admin.TabularInline):
+    model = Appointment
+    extra = 0
+    fields = ('get_patient_display', 'appointment_date', 'appointment_time', 'reason', 'status')
+    readonly_fields = ('get_patient_display',)
+    show_change_link = True
+
+    def get_patient_display(self, obj):
+        if obj.patient_name:
+            return obj.patient_name
+        if obj.patient_profile and getattr(obj.patient_profile, 'user', None):
+            try:
+                return obj.patient_profile.user.get_full_name() or obj.patient_profile.user.username
+            except Exception:
+                return str(obj.patient_profile)
+        if obj.patient_user:
+            try:
+                return obj.patient_user.get_full_name() or obj.patient_user.username
+            except Exception:
+                return str(obj.patient_user)
+        return '(guest)'
+    get_patient_display.short_description = 'Patient'
+
+
 @admin.register(Doctor)
 class DoctorAdmin(admin.ModelAdmin):
-    list_display = ('name', 'specialty', 'user', 'created_at', 'updated_at')
-    search_fields = ('name', 'specialty', 'description', 'user__username', 'user__email')
+    list_display = ('name', 'specialty', 'user', 'services_list', 'created_at', 'updated_at')
+    search_fields = ('name', 'specialty', 'description', 'user__username', 'user__email', 'services__title')
     list_filter = ('specialty', 'created_at', 'updated_at')
     readonly_fields = ('image_preview', 'created_at', 'updated_at')
     fieldsets = (
-        (None, {'fields': ('user', 'name', 'specialty', 'description', 'image', 'image_preview')}),
+        (None, {'fields': ('user', 'name', 'specialty', 'description', 'image', 'image_preview', 'services')}),
     )
+    filter_horizontal = ('services',)
+    inlines = [AppointmentInline]
 
     def image_preview(self, obj):
         if obj and getattr(obj, 'image', None):
@@ -71,8 +95,10 @@ class DoctorAdmin(admin.ModelAdmin):
         return "(No image)"
     image_preview.short_description = "Image preview"
 
+    def services_list(self, obj):
+        return ", ".join([s.title for s in obj.services.all()]) if obj.pk else ""
+    services_list.short_description = "Services"
 
-# --- Appointment admin ---
 
 @admin.register(Appointment)
 class AppointmentAdmin(admin.ModelAdmin):
@@ -113,7 +139,8 @@ class AppointmentAdmin(admin.ModelAdmin):
         updated = queryset.update(status=Appointment.STATUS_CANCELLED)
         self.message_user(request, f"{updated} appointment(s) marked as cancelled.")
     mark_as_cancelled.short_description = "Mark selected appointment(s) as cancelled"
-# --- Patient admin ---
+
+
 @admin.register(Patient)
 class PatientAdmin(admin.ModelAdmin):
     list_display = ('first_name', 'last_name', 'email', 'phone_number', 'created_at')
@@ -121,7 +148,6 @@ class PatientAdmin(admin.ModelAdmin):
     list_filter = ('created_at',)
 
 
-# --- PatientProfile admin ---
 @admin.register(PatientProfile)
 class PatientProfileAdmin(admin.ModelAdmin):
     list_display = ('user', 'phone', 'blood_type', 'date_registered', 'last_updated')
@@ -130,7 +156,6 @@ class PatientProfileAdmin(admin.ModelAdmin):
     list_filter = ('blood_type', 'date_registered')
 
 
-# --- LabSample admin ---
 @admin.register(LabSample)
 class LabSampleAdmin(admin.ModelAdmin):
     list_display = ('sample_id', 'status', 'created_at')
@@ -138,7 +163,6 @@ class LabSampleAdmin(admin.ModelAdmin):
     list_filter = ('status', 'created_at')
 
 
-# --- Contact admin ---
 @admin.register(Contact)
 class ContactAdmin(admin.ModelAdmin):
     list_display = ('full_name', 'email', 'created_at')

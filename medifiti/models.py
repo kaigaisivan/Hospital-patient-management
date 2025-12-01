@@ -75,13 +75,14 @@ class Doctor(models.Model):
     description = models.TextField(blank=True)
     image = models.ImageField(upload_to='doctors/', null=True, blank=True)
 
-    # Add timestamps so templates and cache-busting work and so admin can sort
+    # new: services a doctor offers
+    services = models.ManyToManyField('Service', blank=True, related_name='doctors')
+
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
 
     def __str__(self):
         return f"Dr. {self.name}"
-
 
 
 class Service(models.Model):

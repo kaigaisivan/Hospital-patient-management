@@ -2,7 +2,7 @@ from django import forms
 from django.contrib.auth import get_user_model
 from django.contrib.auth.forms import UserCreationForm
 from django.utils import timezone
-
+from .models import Doctor, Service
 from .models import Appointment, Patient, PatientProfile
 
 # Use the project's user model
@@ -190,3 +190,15 @@ class PatientProfileForm(forms.ModelForm):
         for name, field in self.fields.items():
             if 'class' not in field.widget.attrs:
                 field.widget.attrs['class'] = 'form-control'
+
+
+class DoctorProfileForm(forms.ModelForm):
+    services = forms.ModelMultipleChoiceField(
+        queryset=Service.objects.filter(active=True),
+        required=False,
+        widget=forms.CheckboxSelectMultiple
+    )
+
+    class Meta:
+        model = Doctor
+        fields = ('name', 'specialty', 'description', 'image', 'services')

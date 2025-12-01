@@ -6,6 +6,11 @@ from django.conf import settings
 from django.contrib import messages
 from django.db.models import Q
 
+from django.shortcuts import render, redirect, get_object_or_404
+from django.contrib import messages
+
+from django.db.models import Prefetch
+
 from django.contrib.auth import authenticate, login as auth_login, logout as auth_logout, update_session_auth_hash
 from django.contrib.auth.forms import UserCreationForm, AuthenticationForm, PasswordChangeForm
 from django.contrib.auth.decorators import login_required
@@ -293,14 +298,27 @@ def admin_dashboard(request):
 
 @doctor_required
 def doctor_dashboard(request):
-    try:
-        doctor_obj = Doctor.objects.get(user=request.user)
-    except Doctor.DoesNotExist:
-        doctor_obj = None
-    appointments = doctor_obj.appointments.all().order_by('appointment_date') if doctor_obj else []
-    return render(request, 'doctor_dashboard.html', {'doctor': doctor_obj, 'appointments': appointments})
-
-
+    doctor_obj, _ = Doctor.objects.get_or_create(user=request.user, defaults={'name': request.user.get_full_name() or request.user.username})
+    # Prefetch patient profiles to avoid N+1 and include patient_user
+    appointments = Appointment.objects.filter(doctor=doctor_obj).select_related('patient_user', 'patient_profile').order_by('appointment_date', 'appointment_time')
+    return render(request, 'doctor_dashboard.html', {
+        'doctor': doctor_obj,
+        'appointments': appointments,
+    })
+@doctor_required
+def doctor_profile(request):
+    doctor_obj, created = Doctor.objects.get_or_create(user=request.user, defaults={'name': request.user.get_full_name() or request.user.username})
+    if request.method == 'POST':
+        form = DoctorProfileForm(request.POST, request.FILES, instance=doctor_obj)
+        if form.is_valid():
+            form.save()
+            messages.success(request, 'Profile updated.')
+            return redirect('doctor_dashboard')
+        else:
+            messages.error(request, 'Please correct the errors below.')
+    else:
+        form = DoctorProfileForm(instance=doctor_obj)
+    return render(request, 'doctor_profile.html', {'form': form, 'doctor': doctor_obj})
 @patient_required
 def patient_dashboard(request):
     user_appointments = Appointment.objects.filter(Q(patient_email=request.user.email) | Q(patient_user=request.user) | Q(patient_profile__user=request.user)).distinct()
