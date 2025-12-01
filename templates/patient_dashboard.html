@@ -2,6 +2,9 @@
 {% block content %}
 <div class="container mt-5">
   <h2>Patient Dashboard</h2>
+ <div class="d-flex justify-content-end mb-3">
+   <a href="{% url 'profile' %}" class="btn btn-primary">Open profile</a>
+ </div>
   <h4>Your Appointments</h4>
   <table class="table table-bordered">
     <thead>

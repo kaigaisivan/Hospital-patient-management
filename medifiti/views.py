@@ -1,53 +1,37 @@
+# python
 from django.shortcuts import render, redirect, get_object_or_404
-from django.contrib import messages
 from django.template.loader import render_to_string
 from django.core.mail import EmailMultiAlternatives
 from django.conf import settings
+from django.contrib import messages
+from django.db.models import Q
 
-from django.contrib.auth import authenticate, login, logout
-from django.contrib.auth.forms import UserCreationForm
-from .models import CustomUser
-from .decorators import admin_required, doctor_required, patient_required
-from django.shortcuts import render, redirect
-
-from django.shortcuts import render, redirect, get_object_or_404
-
-from .models import Contact, Doctor, Appointment, Service, LabSample
-
-# Your imports
-from medifiti.forms import PatientForm
-from medifiti.models import Patient, Appointment
-from .forms import AppointmentForm
-
-# Jackie’s imports
-from .forms import RegisterationForm
-from django.contrib.auth.models import User
-
-from django.contrib.auth.forms import AuthenticationForm
-from django.contrib.auth import login, logout, authenticate
+from django.contrib.auth import authenticate, login as auth_login, logout as auth_logout, update_session_auth_hash
+from django.contrib.auth.forms import UserCreationForm, AuthenticationForm, PasswordChangeForm
 from django.contrib.auth.decorators import login_required
 
-from django.contrib.auth.forms import PasswordChangeForm
-from django.contrib.auth import update_session_auth_hash
+from .decorators import admin_required, doctor_required, patient_required
+from .models import (
+    CustomUser, Contact, Doctor, Appointment, Service, LabSample,
+    Patient, PatientProfile
+)
+from .forms import (
+    PatientForm, AppointmentForm, PatientProfileForm
+)
 
 
-# -----------------------------
-# Basic Public Pages
-# -----------------------------
+# --- Public pages ---
 def index(request):
-    # show only active services, newest first
     services_qs = Service.objects.filter(active=True).order_by('-created_at')[:6]
     return render(request, 'index.html', {'services': services_qs})
+
 
 def services(request):
     services_qs = Service.objects.filter(active=True).order_by('-updated_at')
     return render(request, 'services.html', {'services': services_qs})
+
+
 def service_detail(request, slug):
-    """
-    Try DB first (active services only). If no active DB service found,
-    fall back to the static mapping as before.
-    """
-    # lookup active DB service
     service_obj = Service.objects.filter(slug=slug, active=True).first()
     sample_result = None
 
@@ -87,7 +71,7 @@ def service_detail(request, slug):
         }
         return render(request, 'service_detail.html', context)
 
-    # fallback mapping (unchanged behavior)
+    # fallback mapping
     services_map = {
         'general-consultation': {
             'title': 'General Consultation',
@@ -138,27 +122,22 @@ def service_detail(request, slug):
     }
     return render(request, 'service_detail.html', context)
 
+
 def about(request):
-    return render(request,'about.html')
+    return render(request, 'about.html')
+
 
 def contact(request):
     if request.method == 'POST':
         full_name = request.POST.get('full_name')
         email = request.POST.get('email')
         message = request.POST.get('message')
-        
+
         if full_name and email and message:
-            contact = Contact.objects.create(
-                full_name=full_name,
-                email=email,
-                message=message
-            )
-            # Notify admins about new contact using HTML + text templates
+            contact = Contact.objects.create(full_name=full_name, email=email, message=message)
+
             subject = f"New contact message from {contact.full_name}"
-            context = {
-                'contact': contact,
-            }
-            # Render templates
+            context = {'contact': contact}
             text_content = render_to_string('emails/contact_admin.txt', context)
             html_content = render_to_string('emails/contact_admin.html', context)
             recipients = [email for (_name, email) in getattr(settings, 'ADMINS', [])]
@@ -169,7 +148,7 @@ def contact(request):
                     msg.send(fail_silently=True)
                 except Exception:
                     pass
-            # Send confirmation email to the user who submitted the contact
+
             try:
                 user_subject = 'Thanks for contacting HospitalCare'
                 user_ctx = {'contact': contact}
@@ -180,37 +159,32 @@ def contact(request):
                 user_msg.send(fail_silently=True)
             except Exception:
                 pass
+
             messages.success(request, 'Thank you for your message! We will get back to you soon.')
             return render(request, 'contact.html')
         else:
             messages.error(request, 'Please fill in all fields.')
-    
-    return render(request,'contact.html')
+
+    return render(request, 'contact.html')
+
 
 def doctors(request):
-    doctors = Doctor.objects.all()
-    context = {'doctors': doctors}
-    return render(request,'doctors.html', context)
+    doctors_qs = Doctor.objects.all()
+    return render(request, 'doctors.html', {'doctors': doctors_qs})
+
 
 def departments(request):
-    return render(request,'departments.html')
+    return render(request, 'departments.html')
 
-# python
-# File: `medifiti/views.py` — ensure only this unified view exists (remove any other `book_appointment` definitions)
 
+# --- Appointment booking ---
 def book_appointment(request, doctor_id=None):
-    """
-    Unified booking view:
-    - If doctor_id is provided: show/process `book_appointment.html` (book for specific doctor).
-    - If no doctor_id: show/process generic `appointment.html` with AppointmentForm.
-    """
     doctor = None
     if doctor_id is not None:
         doctor = get_object_or_404(Doctor, id=doctor_id)
 
     if request.method == 'POST':
         if doctor:
-            # legacy/doctor-specific POST handling (keeps current simple flow)
             patient_name = request.POST.get('patient_name')
             patient_email = request.POST.get('patient_email')
             patient_phone = request.POST.get('patient_phone')
@@ -234,7 +208,6 @@ def book_appointment(request, doctor_id=None):
                 messages.error(request, 'Please fill in all fields.')
                 return render(request, 'book_appointment.html', {'doctor': doctor})
         else:
-            # generic appointment form handling
             form = AppointmentForm(request.POST)
             if form.is_valid():
                 form.save()
@@ -242,17 +215,18 @@ def book_appointment(request, doctor_id=None):
                 return redirect('index')
             return render(request, 'appointment.html', {'form': form})
     else:
-        # GET
         if doctor:
             return render(request, 'book_appointment.html', {'doctor': doctor})
         form = AppointmentForm()
         return render(request, 'appointment.html', {'form': form})
+
 
 # --- Authentication & Dashboards ---
 class CustomUserCreationForm(UserCreationForm):
     class Meta:
         model = CustomUser
         fields = ('username', 'email', 'role', 'password1', 'password2')
+
 
 def register(request):
     if request.user.is_authenticated:
@@ -261,10 +235,10 @@ def register(request):
         form = CustomUserCreationForm(request.POST)
         if form.is_valid():
             user = form.save()
-            login(request, user)
-            if user.role == 'admin':
+            auth_login(request, user)
+            if user.role == CustomUser.ROLE_ADMIN:
                 return redirect('admin_dashboard')
-            elif user.role == 'doctor':
+            elif user.role == CustomUser.ROLE_DOCTOR:
                 return redirect('doctor_dashboard')
             else:
                 return redirect('patient_dashboard')
@@ -272,43 +246,53 @@ def register(request):
         form = CustomUserCreationForm()
     return render(request, 'register.html', {'form': form})
 
-def user_login(request):
+
+def login_user(request):
+    # kept name `login_user` so it matches `medifiti/urls.py`; uses `auth_login` to avoid name clash
     if request.user.is_authenticated:
         return redirect('index')
     if request.method == 'POST':
-        username = request.POST.get('username')
-        password = request.POST.get('password')
-        user = authenticate(request, username=username, password=password)
-        if user is not None:
-            login(request, user)
-            if user.role == 'admin':
+        form = AuthenticationForm(data=request.POST)
+        if form.is_valid():
+            user = form.get_user()
+            auth_login(request, user)
+            if user.role == CustomUser.ROLE_ADMIN:
                 return redirect('admin_dashboard')
-            elif user.role == 'doctor':
+            elif user.role == CustomUser.ROLE_DOCTOR:
                 return redirect('doctor_dashboard')
             else:
                 return redirect('patient_dashboard')
-        else:
-            return render(request, 'login.html', {'error': 'Invalid credentials'})
-    return render(request, 'login.html')
-
-def user_logout(request):
-    logout(request)
+    else:
+        form = AuthenticationForm()
+    return render(request, 'login.html', {'form': form})
+def logout_user(request):
+    auth_logout(request)
     return redirect('index')
+
 
 @admin_required
 def admin_dashboard(request):
     contacts = Contact.objects.all().order_by('-created_at')
+    patients = Patient.objects.all()
+
     if request.method == 'POST':
         admin = request.user
         admin.notification_email = request.POST.get('notification_email', admin.notification_email)
         admin.notification_method = request.POST.get('notification_method', admin.notification_method)
         admin.save()
         messages.success(request, 'Notification settings updated!')
-    return render(request, 'admin_dashboard.html', {'contacts': contacts, 'admin': request.user})
+        return redirect('admin_dashboard')
+
+    context = {
+        'contacts': contacts,
+        'patients': patients,
+        'admin': request.user,
+    }
+    return render(request, 'admin_dashboard.html', context)
+
 
 @doctor_required
 def doctor_dashboard(request):
-    doctor_obj = None
     try:
         doctor_obj = Doctor.objects.get(user=request.user)
     except Doctor.DoesNotExist:
@@ -316,32 +300,15 @@ def doctor_dashboard(request):
     appointments = doctor_obj.appointments.all().order_by('appointment_date') if doctor_obj else []
     return render(request, 'doctor_dashboard.html', {'doctor': doctor_obj, 'appointments': appointments})
 
+
 @patient_required
 def patient_dashboard(request):
-    user_appointments = Appointment.objects.filter(patient_email=request.user.email)
-    services = Service.objects.all()
-    return render(request, 'patient_dashboard.html', {'appointments': user_appointments, 'services': services})
-    return render(request, 'index.html')
-
-def services(request):
-    return render(request, 'services.html')
-
-def about(request):
-    return render(request, 'about.html')
-
-def contact(request):
-    return render(request, 'contact.html')
-
-def doctors(request):
-    return render(request, 'doctors.html')
-
-def departments(request):
-    return render(request, 'departments.html')
+    user_appointments = Appointment.objects.filter(Q(patient_email=request.user.email) | Q(patient_user=request.user) | Q(patient_profile__user=request.user)).distinct()
+    services_qs = Service.objects.all()
+    return render(request, 'patient_dashboard.html', {'appointments': user_appointments, 'services': services_qs})
 
 
-# -----------------------------
-# Your Patient CRUD + Admin
-# -----------------------------
+# --- Patient CRUD for admin ---
 def create_patient(request):
     if request.method == "POST":
         form = PatientForm(request.POST)
@@ -350,17 +317,11 @@ def create_patient(request):
             return redirect('admin_dashboard')
     else:
         form = PatientForm()
-
     return render(request, 'patient_form.html', {'form': form})
 
 
-def admin_dashboard(request):
-    patients = Patient.objects.all()
-    return render(request, 'admin_dashboard.html', {'patients': patients})
-
-
 def update_patient(request, id):
-    patient = Patient.objects.get(id=id)
+    patient = get_object_or_404(Patient, id=id)
     if request.method == "POST":
         form = PatientForm(request.POST, instance=patient)
         if form.is_valid():
@@ -368,61 +329,26 @@ def update_patient(request, id):
             return redirect('admin_dashboard')
     else:
         form = PatientForm(instance=patient)
-
     return render(request, 'patient_form.html', {'form': form})
 
 
 def delete_patient(request, id):
-    patient = Patient.objects.get(id=id)
+    patient = get_object_or_404(Patient, id=id)
     patient.delete()
     return redirect('admin_dashboard')
 
 
-# -----------------------------
-# Appointment System
-# -----------------------------
+# --- Admin appointments listing ---
+@admin_required
 def admin_appointments(request):
-    appointments = Appointment.objects.all().order_by('-date')
+    appointments = Appointment.objects.all().order_by('-appointment_date', '-appointment_time')
     return render(request, 'admin_appointments.html', {'appointments': appointments})
 
 
-# -----------------------------
-# Jackie’s Authentication System
-# -----------------------------
-def register(request):
-    if request.method == 'POST':
-        form = RegisterationForm(request.POST)
-        if form.is_valid():
-            form.save()
-            return render(request, 'index.html')
-    else:
-        form = RegisterationForm()
-
-    return render(request, 'register.html', {'form': form})
-
-
-def login_user(request):
-    if request.method == 'POST':
-        form = AuthenticationForm(data=request.POST)
-        if form.is_valid():
-            user = form.get_user()
-            login(request, user)
-            return redirect('profile')
-    else:
-        form = AuthenticationForm()
-
-    return render(request, 'login.html', {'form': form})
-
-
+# --- Patient profile & account views ---
 @login_required
 def profile(request):
-    profile = getattr(request.user, 'patientprofile', None)
-    from .forms import PatientProfileForm
-
-    if profile is None:
-        from .models import PatientProfile
-        profile = PatientProfile.objects.create(user=request.user)
-
+    profile, _created = PatientProfile.objects.get_or_create(user=request.user)
     if request.method == 'POST':
         form = PatientProfileForm(request.POST, instance=profile)
         if form.is_valid():
@@ -431,30 +357,29 @@ def profile(request):
             return redirect('profile')
     else:
         form = PatientProfileForm(instance=profile)
-
     return render(request, 'profile.html', {'form': form})
 
 
-def logout_user(request):
-    logout(request)
-    return redirect('index')
-
-
-# -----------------------------
-# Jackie’s Dashboard Views
-# -----------------------------
 @login_required
 def appointments(request):
-    return render(request, 'appointments.html')
+    appointments_qs = Appointment.objects.filter(
+        Q(patient_user=request.user) |
+        Q(patient_profile__user=request.user) |
+        Q(patient_email__iexact=(request.user.email or ''))
+    ).distinct().order_by('-appointment_date', '-appointment_time')
+    return render(request, 'appointments.html', {'appointments': appointments_qs})
+
 
 @login_required
 def prescriptions(request):
     return render(request, 'prescriptions.html')
 
+
 @login_required
 def medical_history(request):
-    profile = request.user.patientprofile
+    profile, _created = PatientProfile.objects.get_or_create(user=request.user)
     return render(request, 'medical_history.html', {'profile': profile})
+
 
 @login_required
 def change_password(request):
@@ -462,19 +387,38 @@ def change_password(request):
         form = PasswordChangeForm(user=request.user, data=request.POST)
         if form.is_valid():
             user = form.save()
-            update_session_auth_hash(request, user)  # Prevents logout after password change
+            update_session_auth_hash(request, user)
             messages.success(request, 'Your password was successfully updated!')
             return redirect('profile')
         else:
             messages.error(request, 'Please correct the error below.')
     else:
         form = PasswordChangeForm(user=request.user)
-
     return render(request, 'change_password.html', {'form': form})
+
+
+@login_required
 def emergency_contact(request):
-    return render(request, 'emergency_contact.html')
+    profile, _created = PatientProfile.objects.get_or_create(user=request.user)
+
+    if request.method == 'POST':
+        name = request.POST.get('emergency_contact_name', '').strip()
+        relation = request.POST.get('emergency_contact_relation', '').strip()
+        phone = request.POST.get('emergency_contact_phone', '').strip()
+
+        if name or relation or phone:
+            profile.emergency_contact_name = name
+            profile.emergency_contact_relation = relation
+            profile.emergency_contact_phone = phone
+            profile.save()
+            messages.success(request, 'Emergency contact updated.')
+            return redirect('emergency-contact')
+        else:
+            messages.error(request, 'Please provide at least one emergency contact field.')
+
+    return render(request, 'emergency_contact.html', {'profile': profile})
+
+
 @login_required
 def medical_files(request):
-    # We can later extend this to show uploaded files or patient records
     return render(request, 'medical_files.html')
-

@@ -1,40 +1,71 @@
+
 {% extends 'base.html' %}
 
 {% block title %}My Appointments{% endblock %}
 
 {% block content %}
 <div class="container py-5">
-  <div class="row">
-    <div class="col-md-12">
-      <h2 class="fw-bold mb-4">
-        <a href="{% url 'profile' %}" class="text-decoration-none text-muted me-2">
-          <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" fill="currentColor" class="bi bi-arrow-left" viewBox="0 0 16 16">
-            <path fill-rule="evenodd" d="M12 8a.5.5 0 0 1-.5.5H5.707l2.147 2.146a.5.5 0 0 1-.708.708l-3-3a.5.5 0 0 1 0-.708l3-3a.5.5 0 1 1 .708.708L5.707 7.5H11.5a.5.5 0 0 1 .5.5z"/>
-          </svg>
-        </a>
-        My Appointments
-      </h2>
-      
-      <div class="alert alert-info">
-        <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" fill="currentColor" class="bi bi-info-circle me-2" viewBox="0 0 16 16">
-          <path d="M8 15A7 7 0 1 1 8 1a7 7 0 0 1 0 14zm0 1A8 8 0 1 0 8 0a8 8 0 0 0 0 16z"/>
-          <path d="m8.93 6.588-2.29.287-.082.38.45.083c.294.07.352.176.288.469l-.738 3.468c-.194.897.105 1.319.808 1.319.545 0 1.178-.252 1.465-.598l.088-.416c-.2.176-.492.246-.686.246-.275 0-.375-.193-.304-.533l1.48-6.976c.022-.1.033-.202.033-.301 0-.263-.144-.405-.408-.405-.165 0-.368.057-.522.212l.617-.624c.182-.17.389-.243.597-.243.63 0 1.091.310 1.091.824v.072l-.014.592z"/>
-          <circle cx="8" cy="12.5" r=".5"/>
+<div class="row">
+  <div class="col-md-12">
+    <h2 class="fw-bold mb-4">
+      <a href="{% url 'profile' %}" class="text-decoration-none text-muted me-2">
+        <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" fill="currentColor" class="bi bi-arrow-left" viewBox="0 0 16 16">
+          <path fill-rule="evenodd" d="M12 8a.5.5 0 0 1-.5.5H5.707l2.147 2.146a.5.5 0 0 1-.708.708l-3-3a.5.5 0 0 1 0-.708l3-3a.5.5 0 1 1 .708.708L5.707 7.5H11.5a.5.5 0 0 1 .5.5z"/>
         </svg>
-        <strong>Appointments Module Coming Soon!</strong> This feature will allow you to view, book, and manage your appointments.
-      </div>
+      </a>
+      My Appointments
+    </h2>
 
-      <div class="card">
-        <div class="card-body text-center py-5">
-          <svg xmlns="http://www.w3.org/2000/svg" width="64" height="64" fill="#ccc" class="bi bi-calendar-check mb-3" viewBox="0 0 16 16">
-            <path d="M10.854 7.146a.5.5 0 0 1 0 .708l-3 3a.5.5 0 0 1-.708 0l-1.5-1.5a.5.5 0 0 1 .708-.708L7.5 9.793l2.646-2.647a.5.5 0 0 1 .708 0z"/>
-            <path d="M16 14V4a2 2 0 0 1-2-2V1a2 2 0 0 1-2 2h-5.5a1 1 0 1 1 0-2H9V1a2 2 0 0 1-4 0v.5H4a2 2 0 0 1 2 2v10a2 2 0 0 1-2 2H2a2 2 0 0 1-2-2V4a1 1 0 0 1 1-1h3V1a1 1 0 1 1 2 0v3h5.5a1 1 0 1 1 0 2H9v10a1 1 0 0 1-1 1H2a1 1 0 0 1-1-1V4a1 1 0 0 0-1 1v10a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2z"/>
-          </svg>
-          <p class="text-muted">No appointments to display yet.</p>
-          <p class="text-muted small">Check back soon or contact us to schedule an appointment.</p>
+    {% if appointments %}
+    <div class="list-group mb-4">
+      {% for appt in appointments %}
+      <div class="list-group-item list-group-item-action mb-2">
+        <div class="d-flex w-100 justify-content-between">
+          <h5 class="mb-1">Dr. {{ appt.doctor.name }}</h5>
+          <small class="text-muted">{{ appt.appointment_date }} at {{ appt.appointment_time }}</small>
+        </div>
+        <p class="mb-1">{{ appt.reason|default:"(no reason provided)" }}</p>
+        <div class="d-flex justify-content-between align-items-center">
+          <div>
+            {% if appt.patient_name %}
+              <small class="text-muted">Patient: {{ appt.patient_name }}</small>
+            {% elif appt.patient_profile and appt.patient_profile.user %}
+              <small class="text-muted">Patient: {{ appt.patient_profile.user.get_full_name|default:appt.patient_profile.user.username }}</small>
+            {% elif appt.patient_user %}
+              <small class="text-muted">Patient: {{ appt.patient_user.get_full_name|default:appt.patient_user.username }}</small>
+            {% endif %}
+          </div>
+          <div>
+            {% if appt.status == 'confirmed' %}
+              <span class="badge bg-success text-uppercase">{{ appt.status }}</span>
+            {% elif appt.status == 'pending' %}
+              <span class="badge bg-warning text-dark text-uppercase">{{ appt.status }}</span>
+            {% elif appt.status == 'completed' %}
+              <span class="badge bg-primary text-uppercase">{{ appt.status }}</span>
+            {% elif appt.status == 'cancelled' %}
+              <span class="badge bg-danger text-uppercase">{{ appt.status }}</span>
+            {% else %}
+              <span class="badge bg-secondary text-uppercase">{{ appt.status }}</span>
+            {% endif %}
+          </div>
         </div>
       </div>
+      {% endfor %}
     </div>
+    {% else %}
+    <div class="card">
+      <div class="card-body text-center py-5">
+        <svg xmlns="http://www.w3.org/2000/svg" width="64" height="64" fill="#ccc" class="bi bi-calendar-check mb-3" viewBox="0 0 16 16">
+          <path d="M10.854 7.146a.5.5 0 0 1 0 .708l-3 3a.5.5 0 0 1-.708 0l-1.5-1.5a.5.5 0 0 1 .708-.708L7.5 9.793l2.646-2.647a.5.5 0 0 1 .708 0z"/>
+          <path d="M16 14V4a2 2 0 0 1-2-2V1a2 2 0 0 1-2 2h-5.5a1 1 0 1 1 0-2H9V1a2 2 0 0 1-4 0v.5H4a2 2 0 0 1 2 2v10a2 2 0 0 1-2 2H2a2 2 0 0 1-2-2V4a1 1 0 0 1 1-1h3V1a1 1 0 1 1 2 0v3h5.5a1 1 0 1 1 0 2H9v10a1 1 0 0 1-1 1H2a1 1 0 0 1-1-1V4a1 1 0 0 0-1 1v10a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2z"/>
+        </svg>
+        <p class="text-muted">No appointments to display yet.</p>
+        <p class="text-muted small">Check back soon or contact us to schedule an appointment.</p>
+      </div>
+    </div>
+    {% endif %}
+
   </div>
+</div>
 </div>
 {% endblock %}
