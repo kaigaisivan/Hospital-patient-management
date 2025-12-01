@@ -1,0 +1,206 @@
+{% extends 'base.html' %}
+
+{% block title %}Patient Dashboard{% endblock %}
+
+{% block content %}
+<div class="container-fluid py-5">
+  
+  <!-- Profile Hero Banner Section -->
+  <div class="bg-light rounded-3 p-5 mb-5 shadow-sm">
+    <div class="row">
+      <div class="col-md-12 text-center">
+        {% if user.patientprofile.profile_photo_url %}
+        <img src="{{ user.patientprofile.profile_photo_url }}" alt="Profile photo" class="rounded-circle mb-3" style="width:150px;height:150px;object-fit:cover;border:4px solid #0d6efd;">
+        {% else %}
+        <div class="rounded-circle bg-primary text-white mb-3 d-inline-flex align-items-center justify-content-center" style="width:150px;height:150px;font-size:3rem;">
+          <svg xmlns="http://www.w3.org/2000/svg" width="80" height="80" fill="currentColor" class="bi bi-person-circle" viewBox="0 0 16 16">
+            <path d="M11 6a3 3 0 1 1-6 0 3 3 0 0 1 6 0ZM8 7a2 2 0 1 1 0-4 2 2 0 0 1 0 4ZM.5 1a.5.5 0 0 0 0 1h1.110l.387 1.162A.5.5 0 0 0 2.5 3h11a.5.5 0 0 0 .486-.367l1.11-3.327A.5.5 0 0 0 14.5 0h-13a.5.5 0 0 0-.486.633l1.11 3.327A.5.5 0 0 0 2.5 4h11a.5.5 0 0 0 0-1H.5ZM16 16H.5a.5.5 0 0 0 0 1h15.5a.5.5 0 0 0 0-1Z"/>
+          </svg>
+        </div>
+        {% endif %}
+
+        <h2 class="fw-bold mb-1">{{ user.get_full_name|default:user.username }}</h2>
+        <p class="text-muted mb-2">{{ user.email }}</p>
+        <small class="text-muted">Member since {{ user.date_joined|date:"F d, Y" }}</small>
+
+        <div class="mt-4">
+          <button type="button" class="btn btn-primary btn-lg" data-bs-toggle="modal" data-bs-target="#profileModal">
+            <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" fill="currentColor" class="bi bi-pencil-square me-2" viewBox="0 0 16 16">
+              <path d="M15.502 1.94a.5.5 0 0 1 0 .706l-1.197 1.197a.5.5 0 0 1-.707 0L13.087.707a.5.5 0 0 1 0-.706l1.197-1.197a.5.5 0 0 1 .707 0l1.511 1.51Z"/>
+              <path d="M1 13.5A1.5 1.5 0 0 0 2.5 15h11a1.5 1.5 0 0 0 1.5-1.5v-6a.5.5 0 0 0-1 0v6a.5.5 0 0 1-.5.5h-11a.5.5 0 0 1-.5-.5v-11a.5.5 0 0 1 .5-.5H9a.5.5 0 0 0 0-1H2.5A1.5 1.5 0 0 0 1 2.5v11Z"/>
+            </svg>
+            View / Edit Profile
+          </button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Feature Cards Grid Section -->
+  <div class="mb-5">
+    <h4 class="fw-bold mb-4">Quick Access</h4>
+    <div class="row g-4">
+      
+      <!-- My Appointments Card -->
+      <div class="col-md-6 col-lg-3">
+        <a href="{% url 'appointments' %}" class="text-decoration-none">
+          <div class="card h-100 shadow-sm border-0 hover-card" style="transition: transform 0.2s, box-shadow 0.2s;">
+            <div class="card-body text-center">
+              <svg xmlns="http://www.w3.org/2000/svg" width="48" height="48" fill="#0d6efd" class="bi bi-calendar-check mb-3" viewBox="0 0 16 16">
+                <path d="M10.854 7.146a.5.5 0 0 1 0 .708l-3 3a.5.5 0 0 1-.708 0l-1.5-1.5a.5.5 0 0 1 .708-.708L7.5 9.793l2.646-2.647a.5.5 0 0 1 .708 0z"/>
+                <path d="M16 14V4a2 2 0 0 1-2-2V1a2 2 0 0 1-2 2h-5.5a1 1 0 1 1 0-2H9V1a2 2 0 0 1-4 0v.5H4a2 2 0 0 1 2 2v10a2 2 0 0 1-2 2H2a2 2 0 0 1-2-2V4a1 1 0 0 1 1-1h3V1a1 1 0 1 1 2 0v3h5.5a1 1 0 1 1 0 2H9v10a1 1 0 0 1-1 1H2a1 1 0 0 1-1-1V4a1 1 0 0 0-1 1v10a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2z"/>
+              </svg>
+              <h6 class="card-title fw-bold">My Appointments</h6>
+              <p class="card-text text-muted small">View upcoming & past appointments</p>
+            </div>
+          </div>
+        </a>
+      </div>
+
+      <!-- My Prescriptions Card -->
+      <div class="col-md-6 col-lg-3">
+        <a href="{% url 'prescriptions' %}" class="text-decoration-none">
+          <div class="card h-100 shadow-sm border-0 hover-card" style="transition: transform 0.2s, box-shadow 0.2s;">
+            <div class="card-body text-center">
+              <svg xmlns="http://www.w3.org/2000/svg" width="48" height="48" fill="#198754" class="bi bi-prescription2 mb-3" viewBox="0 0 16 16">
+                <path d="M7 6h2v2H7V6zm2-4H7v2h2V2zM5 10v2H3v-2h2zm4 0v2H7v-2h2zm2 0v2h-2v-2h2zM2 2a2 2 0 0 0-2 2v8a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V4a2 2 0 0 0-2-2H2zm1 1h10a1 1 0 0 1 1 1v8a1 1 0 0 1-1 1H3a1 1 0 0 1-1-1V4a1 1 0 0 1 1-1z"/>
+              </svg>
+              <h6 class="card-title fw-bold">My Prescriptions</h6>
+              <p class="card-text text-muted small">Current & past prescriptions</p>
+            </div>
+          </div>
+        </a>
+      </div>
+
+      <!-- Medical History Card -->
+      <div class="col-md-6 col-lg-3">
+        <a href="{% url 'medical-history' %}" class="text-decoration-none">
+          <div class="card h-100 shadow-sm border-0 hover-card" style="transition: transform 0.2s, box-shadow 0.2s;">
+            <div class="card-body text-center">
+              <svg xmlns="http://www.w3.org/2000/svg" width="48" height="48" fill="#fd7e14" class="bi bi-file-medical mb-3" viewBox="0 0 16 16">
+                <path d="M8 5.5a.5.5 0 0 1 .5.5v1h1a.5.5 0 0 1 0 1h-1v1a.5.5 0 0 1-1 0v-1h-1a.5.5 0 0 1 0-1h1V6a.5.5 0 0 1 .5-.5z"/>
+                <path d="M4 0a2 2 0 0 0-2 2v12a2 2 0 0 0 2 2h8a2 2 0 0 0 2-2V2a2 2 0 0 0-2-2H4zm0 1h8a1 1 0 0 1 1 1v12a1 1 0 0 1-1 1H4a1 1 0 0 1-1-1V2a1 1 0 0 1 1-1z"/>
+              </svg>
+              <h6 class="card-title fw-bold">Medical History</h6>
+              <p class="card-text text-muted small">Allergies, conditions & visits</p>
+            </div>
+          </div>
+        </a>
+      </div>
+
+      <!-- Change Password Card -->
+      <div class="col-md-6 col-lg-3">
+        <a href="{% url 'change-password' %}" class="text-decoration-none">
+          <div class="card h-100 shadow-sm border-0 hover-card" style="transition: transform 0.2s, box-shadow 0.2s;">
+            <div class="card-body text-center">
+              <svg xmlns="http://www.w3.org/2000/svg" width="48" height="48" fill="#dc3545" class="bi bi-lock mb-3" viewBox="0 0 16 16">
+                <path d="M5.338 1.59a61.44 61.44 0 0 0-2.837.856.481.481 0 0 0-.328.39c-.554 4.157.726 7.19 2.253 9.188a10.725 10.725 0 0 0 2.287 2.233c.346.244.652.42.893.533.12.057.218.095.293.118a.55.55 0 0 0 .101.025.615.615 0 0 0 .1-.025c.076-.023.174-.061.294-.118.24-.113.547-.29.893-.533a10.726 10.726 0 0 0 2.287-2.233c1.527-1.997 2.807-5.031 2.253-9.188a.48.48 0 0 0-.328-.39c-.651-.213-1.75-.56-2.837-.856C9.552 1.29 8.531 1.067 8 1.067c-.53 0-1.552.223-2.662.524zM5.072.56C6.157.265 7.31 0 8 0s1.843.265 2.928.56c1.11.3 2.229.655 2.887.87a1.54 1.54 0 0 1 1.044 1.262c.596 4.477-.787 7.795-2.465 9.99a11.775 11.775 0 0 1-2.517 2.453 7.159 7.159 0 0 1-1.048.625c-.28.132-.581.262-.96.262-.379 0-.68-.13-.96-.262a7.158 7.158 0 0 1-1.048-.625 11.777 11.777 0 0 1-2.517-2.453C1.928 10.487.545 7.169 1.141 2.692A1.54 1.54 0 0 1 2.185 1.43 62.456 62.456 0 0 1 5.072.56z"/>
+                <path d="M9.5 6.5a1.5 1.5 0 0 1-1 1.415l.385 1.99a.5.5 0 0 1-.491.595h-.788a.5.5 0 0 1-.49-.595l.384-1.99a1.5 1.5 0 1 1 2-1.415z"/>
+              </svg>
+              <h6 class="card-title fw-bold">Change Password</h6>
+              <p class="card-text text-muted small">Update your password</p>
+            </div>
+          </div>
+        </a>
+      </div>
+
+      <!-- Emergency Contact Card -->
+      <div class="col-md-6 col-lg-3">
+        <a href="{% url 'emergency-contact' %}" class="text-decoration-none">
+          <div class="card h-100 shadow-sm border-0 hover-card" style="transition: transform 0.2s, box-shadow 0.2s;">
+            <div class="card-body text-center">
+              <svg xmlns="http://www.w3.org/2000/svg" width="48" height="48" fill="red" class="bi bi-telephone-fill mb-3" viewBox="0 0 16 16">
+                <path fill-rule="evenodd" d="M1.885.511a1.745 1.745 0 0 1 2.61.163L6.29 2.98c.329.423.445.974.315 1.494l-.547 2.19a.678.678 0 0 0 .178.643l2.457 2.457a.678.678 0 0 0 .644.178l2.189-.547a1.745 1.745 0 0 1 1.494.315l2.306 1.794c.829.645.905 1.87.163 2.611l-1.034 1.034c-.74.74-1.846 1.065-2.877.702a18.969 18.969 0 0 1-7.01-4.42 18.969 18.969 0 0 1-4.42-7.009c-.363-1.03-.038-2.137.703-2.877L1.885.511z"/>
+              </svg>
+              <h6 class="card-title fw-bold">Emergency Contact</h6>
+              <p class="card-text text-muted small">View & update contact info</p>
+            </div>
+          </div>
+        </a>
+      </div>
+
+      <!-- Medical Files Card -->
+      <div class="col-md-6 col-lg-3">
+        <a href="{% url 'medical-files' %}" class="text-decoration-none">
+          <div class="card h-100 shadow-sm border-0 hover-card" style="transition: transform 0.2s, box-shadow 0.2s;">
+            <div class="card-body text-center">
+              <svg xmlns="http://www.w3.org/2000/svg" width="48" height="48" fill="#20c997" class="bi bi-folder-check mb-3" viewBox="0 0 16 16">
+                <path d="M9.854 6.146a.5.5 0 0 1 0 .708l-3 3a.5.5 0 0 1-.708 0l-1.5-1.5a.5.5 0 0 1 .708-.708L6.5 8.293l2.646-2.647a.5.5 0 0 1 .708 0z"/>
+                <path d="M14 14V4.5L9.5 0H4a2 2 0 0 0-2 2v12a2 2 0 0 0 2 2h8a2 2 0 0 0 2-2zM9.5 3A1.5 1.5 0 0 0 11 4.5h2V14a1 1 0 0 1-1 1H4a1 1 0 0 1-1-1V2a1 1 0 0 1 1-1h5.5v2z"/>
+              </svg>
+              <h6 class="card-title fw-bold">Medical Files</h6>
+              <p class="card-text text-muted small">Upload & download reports</p>
+            </div>
+          </div>
+        </a>
+      </div>
+
+    </div>
+  </div>
+
+  <!-- Edit Profile Modal -->
+  <div class="modal fade" id="profileModal" tabindex="-1" aria-labelledby="profileModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-lg modal-dialog-centered">
+      <div class="modal-content">
+        <div class="modal-header bg-primary text-white">
+          <h5 class="modal-title" id="profileModalLabel">Edit Profile Information</h5>
+          <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+        </div>
+        <div class="modal-body">
+          {% if messages %}
+          {% for message in messages %}
+          <div class="alert alert-{{ message.tags }} alert-dismissible fade show" role="alert">
+            {{ message }}
+            <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+          </div>
+          {% endfor %}
+          {% endif %}
+
+          {% if form %}
+          <form method="post">
+            {% csrf_token %}
+            <div class="row">
+              {% for field in form %}
+              <div class="mb-3 col-12 {% if field.field.widget.input_type == 'date' %}col-md-6{% endif %}">
+                <label class="form-label" for="id_{{ field.name }}">{{ field.label }}</label>
+                {{ field }}
+                {% if field.help_text %}
+                <small class="form-text text-muted d-block mt-1">{{ field.help_text|safe }}</small>
+                {% endif %}
+                {% if field.errors %}
+                <div class="invalid-feedback d-block">
+                  {% for error in field.errors %}{{ error }}{% endfor %}
+                </div>
+                {% endif %}
+              </div>
+              {% endfor %}
+            </div>
+            <div class="text-end">
+              <button type="button" class="btn btn-secondary me-2" data-bs-dismiss="modal">Close</button>
+              <button type="submit" class="btn btn-primary">Save changes</button>
+            </div>
+          </form>
+          {% else %}
+          <p class="text-muted">No profile available.</p>
+          {% endif %}
+        </div>
+      </div>
+    </div>
+  </div>
+
+</div>
+
+<style>
+  .hover-card {
+    cursor: pointer;
+  }
+  .hover-card:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 .5rem 1rem rgba(0, 0, 0, 0.15) !important;
+  }
+  a.text-decoration-none:hover {
+    text-decoration: none;
+  }
+</style>
+
+{% endblock %}

@@ -7,6 +7,7 @@
 
 <!-- Hero Section -->
 <div class="p-5 mb-4 rounded-3 shadow-sm" style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white;">
+<div class="p-5 mb-4 bg-light rounded-3 shadow-sm ">
     <div class="container-fluid py-5">
         <h1 class="display-4 fw-bold mb-3">Your Health, Our Priority</h1>
         <p class="col-md-8 fs-5 mb-4">
@@ -19,6 +20,9 @@
             <a class="btn btn-light btn-lg mt-2" href="{% url 'login' %}">Book Appointment - Login First</a>
             <a class="btn btn-outline-light btn-lg mt-2 ms-2" href="{% url 'register' %}">Don't have an account? Register</a>
         {% endif %}
+        <img src="{% static 'img/staff-6.webp' %}" class="img-fluid rounded-3 mb-3" alt="Staff">
+
+        <a class="btn btn-primary btn-lg mt-2 center" href="{% url 'appointment' %}">Book Appointment</a>
     </div>
 </div>
 
@@ -129,6 +133,13 @@
                 </div>
                 <h5>Patient Care</h5>
                 <p>Compassionate and personalized treatment for every patient</p>
+<div class="row mt-4">
+    <div class="col-md-4">
+      <div class="card shadow-sm" style="width: 18rem;">
+            <div class="card-body">
+                <h4>General Consultation</h4>
+                <img src="{% static 'img/pediatrics-2.webp  ' %}" class="img-fluid rounded-3 mb-3" alt="Consultation Icon">
+                <p>Get examined by our experienced doctors.</p>
             </div>
         </div>
     </div>
@@ -188,4 +199,30 @@
     </div>
 </section>
 
+    <div class="col-md-4">
+        <div class="card shadow-sm">
+            <div class="card-body">
+                <h4>Lab Services</h4>
+                <img src="{% static 'img/laboratory-3.webp' %}" class="img-fluid rounded-3 mb-3" alt="Consultation Icon">
+                <p>Fast and accurate medical testing.</p>
+            </div>
+        </div>
+    </div>
+</div>
+    <div class="container text-center mt-5">
+       <div class="contact-icon">
+                <i class="fas fa-phone"></i>
+              </div>
+        <div class="contact-text">
+          <h5>Need Immediate Assistance?</h5>
+            <p>Our medical team is available around the clock for urgent consultations and emergency support.</p>
+        </div>
+
+            <div class="contact-actions">
+              <a href="tel:+2547687653" class="call-btn">
+                <i class="fas fa-phone"></i>
+                +2547687653
+              </a>
+            </div>
+    </div>
 {% endblock %}

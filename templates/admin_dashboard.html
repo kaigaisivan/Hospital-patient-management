@@ -1,45 +1,58 @@
 {% extends 'base.html' %}
+
+{% block title %}Patient List - HospitalCare{% endblock %}
+
 {% block content %}
-<div class="container mt-5">
-  <h2>Admin Dashboard</h2>
-  <form method="post" class="mb-4">
-    {% csrf_token %}
-    <div class="mb-3">
-      <label for="notification_email" class="form-label">Notification Email</label>
-      <input type="email" class="form-control" id="notification_email" name="notification_email" value="{{ admin.notification_email }}">
-    </div>
-    <div class="mb-3">
-      <label for="notification_method" class="form-label">Notification Method</label>
-      <select class="form-select" id="notification_method" name="notification_method">
-        <option value="email" {% if admin.notification_method == 'email' %}selected{% endif %}>Email Only</option>
-        <option value="in_app" {% if admin.notification_method == 'in_app' %}selected{% endif %}>In-App Only</option>
-        <option value="both" {% if admin.notification_method == 'both' %}selected{% endif %}>Email & In-App</option>
-      </select>
-    </div>
-    <button type="submit" class="btn btn-success">Save Settings</button>
-  </form>
-  <h3>Messages / Contacts</h3>
-  <table class="table table-bordered">
-    <thead>
-      <tr>
-        <th>Name</th>
-        <th>Email</th>
-        <th>Message</th>
-        <th>Date</th>
-      </tr>
-    </thead>
-    <tbody>
-      {% for contact in contacts %}
-      <tr>
-        <td>{{ contact.full_name }}</td>
-        <td>{{ contact.email }}</td>
-        <td>{{ contact.message|truncatechars:50 }}</td>
-        <td>{{ contact.created_at }}</td>
-      </tr>
-      {% empty %}
-      <tr><td colspan="4">No messages yet.</td></tr>
-      {% endfor %}
-    </tbody>
-  </table>
+<h2 class="fw-bold mb-3"> Patient Service Details</h2>
+<hr>
+
+<div class="d-flex justify-content-end mb-3">
+    <a href="{% url 'create_patient' %}" class="btn btn-primary">➕ Add New Patient</a>
 </div>
+
+<div class="table-responsive">
+<table class="table table-bordered table-striped table-hover align-middle">
+    <thead class="table-dark">
+        <tr>
+            <th>ID</th>
+            <th>First Name</th>
+            <th>Second Name</th>
+            <th>Age</th>
+            <th>Email</th>
+            <th>Phone Number</th>
+            <th>Location</th>
+            <th>Date/Time</th>
+            <th class="text-center">Actions</th>
+        </tr>
+    </thead>
+
+    <tbody>
+        {% for p in patients %}
+        <tr>
+            <td>{{ p.id }}</td>
+            <td>{{ p.first_name }}</td>
+            <td>{{ p.second_name }}</td>
+            <td>{{ p.age }}</td>
+            <td>{{ p.email }}</td>
+            <td>{{ p.phone_number }}</td>
+            <td>{{ p.location }}</td>
+            <td>{{ p.date_time }}</td>
+            <td>
+                <a href="{% url 'update_patient' p.id %}" class="btn btn-success">UPDATE</a>
+                <a href="{% url 'delete_patient' p.id%}" class="btn btn-danger">DELETE</a>
+            </td>
+
+            <td class="text-center">
+
+            </td>
+        </tr>
+        {% empty %}
+        <tr>
+            <td colspan="9" class="text-center text-muted">No patient records found.</td>
+        </tr>
+        {% endfor %}
+    </tbody>
+</table>
+</div>
+
 {% endblock %}
