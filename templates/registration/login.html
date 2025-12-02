@@ -1,0 +1,94 @@
+<!-- html
+File: `templates/login.html` -->
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Love Way Aesthetic \- Login{% endblock %}
+
+{% block content %}
+<style>
+  .login-bg {
+    background: linear-gradient(135deg,#f8eef6 0%,#fff6f9 50%,#f0f7fb 100%);
+    min-height: 100vh;
+    padding: 40px 16px;
+  }
+  .login-card {
+    max-width: 420px;
+    width: 100%;
+    background: #ffffff;
+    border-radius: 12px;
+    box-shadow: 0 8px 24px rgba(18,18,18,0.06);
+    padding: 28px;
+    border: 1px solid rgba(0,0,0,0.03);
+  }
+  .brand { text-align: center; margin-bottom: 12px; }
+  .brand .logo { height: 64px; width: 64px; object-fit: contain; border-radius: 10px; display:inline-block; padding:6px; background: linear-gradient(180deg,#ffdce6,#ffeef6); }
+  .brand h1 { font-size: 18px; margin: 8px 0 0; font-weight:600; color:#333; }
+  .small-note { font-size:0.9rem; color:#666; }
+  .footer-note { text-align:center; margin-top:12px; font-size:0.85rem; color:#999; }
+  .invalid-feedback { display:block; }
+</style>
+
+<div class="login-bg d-flex align-items-center justify-content-center">
+  <div class="login-card">
+    <div class="brand">
+      <img src="{% static 'img/Medifiti logo.png' %}" alt="Medifiti" class="logo">
+      <h1>Login To Medifiti</h1>
+      <div class="small-note">Clinic portal — secure staff & doctor access</div>
+    </div>
+
+    <form method="post" novalidate>
+      {% csrf_token %}
+
+      {% if form.non_field_errors %}
+        <div class="alert alert-danger" role="alert">
+          {% for err in form.non_field_errors %}
+            <div>{{ err }}</div>
+          {% endfor %}
+        </div>
+      {% endif %}
+
+      <div class="mb-3">
+        <label for="id_username" class="form-label">Username or Email</label>
+        <input id="id_username" name="username" type="text"
+               class="form-control{% if form.username.errors %} is-invalid{% endif %}"
+               placeholder="your.username"
+               value="{{ request.POST.username|default_if_none:'' }}" required>
+        {% for e in form.username.errors %}
+          <div class="invalid-feedback small">{{ e }}</div>
+        {% endfor %}
+      </div>
+
+      <div class="mb-3">
+        <label for="id_password" class="form-label">Password</label>
+        <input id="id_password" name="password" type="password"
+               class="form-control{% if form.password.errors %} is-invalid{% endif %}"
+               placeholder="••••••••" required>
+        {% for e in form.password.errors %}
+          <div class="invalid-feedback small">{{ e }}</div>
+        {% endfor %}
+      </div>
+
+      <div class="d-flex align-items-center justify-content-between mb-3">
+        <div class="form-check">
+          <input class="form-check-input" type="checkbox" name="remember" id="id_remember">
+          <label class="form-check-label" for="id_remember">Remember me</label>
+        </div>
+        <div>
+          <a href="{% url 'password_reset' %}" class="small-note">Forgot password?</a>
+        </div>
+      </div>
+
+      <div class="d-grid mb-2">
+        <button type="submit" class="btn btn-primary btn-lg">Sign in</button>
+      </div>
+
+      <div class="text-center small-note">
+        Not a member? <a href="{% url 'register' %}">Create an account</a>
+      </div>
+
+      <div class="footer-note">© {{ now.year }} Medifiti · Secure clinic access</div>
+    </form>
+  </div>
+</div>
+{% endblock %}
