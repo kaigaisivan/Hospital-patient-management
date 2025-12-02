@@ -1,58 +1,116 @@
 {% extends 'base.html' %}
 
-{% block title %}Patient List - HospitalCare{% endblock %}
+{% block title %}Admin Dashboard - HospitalCare{% endblock %}
 
 {% block content %}
-<h2 class="fw-bold mb-3"> Patient Service Details</h2>
-<hr>
-
-<div class="d-flex justify-content-end mb-3">
-    <a href="{% url 'create_patient' %}" class="btn btn-primary">➕ Add New Patient</a>
+<div class="d-flex justify-content-between align-items-center mb-4">
+ <h2 class="fw-bold">Administrator Dashboard</h2>
+ <div>
+   <a href="{% url 'edit_facility' %}" class="btn btn-outline-primary me-2">Edit Facility</a>
+   <a href="{% url 'admin_appointments' %}" class="btn btn-outline-secondary me-2">Manage Appointments</a>
+   <a href="{% url 'services' %}" class="btn btn-outline-secondary me-2">Manage Services</a>
+   <a href="{% url 'doctors' %}" class="btn btn-outline-secondary me-2">Manage Doctors</a>
+   <a href="{% url 'export_patients_csv' %}" class="btn btn-success">Export Patients CSV</a>
+ </div>
 </div>
 
-<div class="table-responsive">
-<table class="table table-bordered table-striped table-hover align-middle">
-    <thead class="table-dark">
-        <tr>
-            <th>ID</th>
-            <th>First Name</th>
-            <th>Second Name</th>
-            <th>Age</th>
-            <th>Email</th>
-            <th>Phone Number</th>
-            <th>Location</th>
-            <th>Date/Time</th>
-            <th class="text-center">Actions</th>
-        </tr>
-    </thead>
+<div class="row g-3 mb-4">
+ <div class="col-md-3">
+   <div class="card p-3">
+     <h6 class="mb-2">Patients</h6>
+     <p class="h3 mb-0">{{ patients|length }}</p>
+     <a href="{% url 'create_patient' %}" class="btn btn-sm btn-primary mt-3">Add Patient</a>
+   </div>
+ </div>
 
-    <tbody>
-        {% for p in patients %}
-        <tr>
-            <td>{{ p.id }}</td>
-            <td>{{ p.first_name }}</td>
-            <td>{{ p.second_name }}</td>
-            <td>{{ p.age }}</td>
-            <td>{{ p.email }}</td>
-            <td>{{ p.phone_number }}</td>
-            <td>{{ p.location }}</td>
-            <td>{{ p.date_time }}</td>
-            <td>
-                <a href="{% url 'update_patient' p.id %}" class="btn btn-success">UPDATE</a>
-                <a href="{% url 'delete_patient' p.id%}" class="btn btn-danger">DELETE</a>
-            </td>
+ <div class="col-md-3">
+   <div class="card p-3">
+     <h6 class="mb-2">Messages</h6>
+     <p class="h3 mb-0">{{ contacts|length }}</p>
+     <a href="#contacts-table" class="btn btn-sm btn-outline-primary mt-3">View Messages</a>
+   </div>
+ </div>
 
-            <td class="text-center">
+ <div class="col-md-3">
+   <div class="card p-3">
+     <h6 class="mb-2">Facility</h6>
+     <p class="mb-0">{% if facility %}{{ facility.name }}{% else %}Not configured{% endif %}</p>
+     <a href="{% url 'edit_facility' %}" class="btn btn-sm btn-outline-primary mt-3">Edit</a>
+   </div>
+ </div>
 
-            </td>
-        </tr>
-        {% empty %}
-        <tr>
-            <td colspan="9" class="text-center text-muted">No patient records found.</td>
-        </tr>
-        {% endfor %}
-    </tbody>
-</table>
+ <div class="col-md-3">
+   <div class="card p-3">
+     <h6 class="mb-2">Quick Links</h6>
+     <a href="{% url 'admin_appointments' %}" class="d-block">Appointments</a>
+     <a href="{% url 'services' %}" class="d-block">Services</a>
+     <a href="{% url 'doctors' %}" class="d-block">Doctors</a>
+   </div>
+ </div>
+</div>
+
+<hr>
+
+<h4 class="mb-3">Patient Records</h4>
+<div class="table-responsive mb-4">
+ <table class="table table-bordered table-hover align-middle">
+   <thead class="table-dark">
+     <tr>
+       <th>ID</th>
+       <th>First Name</th>
+       <th>Last Name</th>
+       <th>Age</th>
+       <th>Email</th>
+       <th>Phone</th>
+       <th>Location</th>
+       <th>Created At</th>
+       <th class="text-center">Actions</th>
+     </tr>
+   </thead>
+   <tbody>
+     {% for p in patients %}
+     <tr>
+       <td>{{ p.id }}</td>
+       <td>{{ p.first_name }}</td>
+       <td>{{ p.last_name }}</td>
+       <td>{{ p.age|default_if_none:"-" }}</td>
+       <td>{{ p.email|default:"-" }}</td>
+       <td>{{ p.phone_number|default:"-" }}</td>
+       <td>{{ p.location|default:"-" }}</td>
+       <td>{{ p.created_at|date:"Y-m-d H:i" }}</td>
+       <td class="text-nowrap">
+         <a href="{% url 'update_patient' p.id %}" class="btn btn-sm btn-success">Edit</a>
+         <a href="{% url 'delete_patient' p.id %}" class="btn btn-sm btn-danger">Delete</a>
+       </td>
+     </tr>
+     {% empty %}
+     <tr>
+       <td colspan="9" class="text-center text-muted">No patient records found.</td>
+     </tr>
+     {% endfor %}
+   </tbody>
+ </table>
+</div>
+
+<hr>
+
+<h4 id="contacts-table" class="mb-3">Contact Messages</h4>
+<div class="list-group mb-5">
+ {% for c in contacts %}
+ <div class="list-group-item d-flex justify-content-between align-items-start">
+   <div>
+     <div class="fw-semibold">{{ c.full_name }}</div>
+     <div class="small text-muted">{{ c.email }} · {{ c.created_at|date:"Y-m-d H:i" }}</div>
+     <div class="mt-2 text-truncate" style="max-width:70ch;">{{ c.message }}</div>
+   </div>
+   <div class="ms-3 text-end">
+     <a href="{% url 'contact_detail' c.id %}" class="btn btn-sm btn-outline-primary mb-2">View</a>
+     <a href="{% url 'delete_contact' c.id %}" class="btn btn-sm btn-outline-danger">Delete</a>
+   </div>
+ </div>
+ {% empty %}
+ <div class="list-group-item text-muted">No contact messages.</div>
+ {% endfor %}
 </div>
 
 {% endblock %}

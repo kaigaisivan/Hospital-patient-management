@@ -23,7 +23,7 @@
            <a class="btn btn-outline-light btn-lg mt-2 ms-2" href="{% url 'register' %}">Don't have an account? Register</a>
          {% endif %}
 
-         <a class="btn btn-primary btn-lg mt-2 ms-2" href="{% url 'appointment' %}">Book Appointment</a>
+         <a class="btn btn-primary btn-lg mt-2 ms-2" href="{% url 'appointments' %}">Book Appointment</a>
 
          <div class="mt-4">
            <img src="{% static 'img/staff-6.webp' %}" class="img-fluid rounded-3" alt="Staff">
@@ -149,7 +149,7 @@
            <div class="card shadow-sm h-100">
              <div class="card-body text-center">
                <h4>Lab Services</h4>
-               <img src="{% static 'img/emergency-1.webp' %}"  class="img-fluid rounded-3 my-3" alt="Laboratory Icon">
+               <img src="{% static 'img/emergency.jpg' %}"  class="img-fluid rounded-3 my-3" alt="Laboratory Icon">
 
                <p>24/7 emergency response and ambulance services.</p>
              </div>
@@ -171,49 +171,70 @@
 
      <!-- Facilities Section -->
      <section class="my-5">
-       <h2 class="fw-bold text-center mb-5">Our Facilities</h2>
-       <div class="row">
-         <div class="col-md-6 mb-4">
-           <div class="bg-light rounded-3 d-flex align-items-center justify-content-center" style="height: 250px; border: 2px dashed #ccc;">
-             <div class="text-center">
-               <div style="font-size: 3rem; color: #667eea;">📸</div>
-               <p class="mt-2 mb-0">Operation Theater</p>
-               <small class="text-muted">(Add image here)</small>
-             </div>
-           </div>
-         </div>
+      <h2 class="fw-bold text-center mb-5">Our Facilities</h2>
+      <div class="row">
+        {% if facility %}
+          <div class="col-md-6 mb-4">
+            <div class="card h-100 shadow-sm">
+              {% if facility.logo %}
+                <img src="{{ facility.logo.url }}" class="card-img-top" alt="{{ facility.name }}" style="height:250px; object-fit:cover;">
+              {% else %}
+                <div class="bg-light d-flex align-items-center justify-content-center" style="height:250px;">
+                  <div class="text-center">
+                    <div style="font-size:3rem; color:#667eea;">📸</div>
+                    <p class="mt-2 mb-0">{{ facility.name }}</p>
+                    <small class="text-muted">No image available</small>
+                  </div>
+                </div>
+              {% endif %}
+              <div class="card-body">
+                <h5 class="card-title">{{ facility.name }}</h5>
+                {% if facility.description %}
+                  <p class="card-text">{{ facility.description|truncatechars:180 }}</p>
+                {% endif %}
+                <p class="mb-1"><strong>Address:</strong> {{ facility.address|default:"Not provided" }}</p>
+                <p class="mb-1"><strong>Phone:</strong> {{ facility.phone|default:"Not provided" }}</p>
+                <p class="mb-1"><strong>Emergency:</strong> {{ facility.emergency_phone|default:"Not provided" }}</p>
+                <p class="mb-1"><strong>Email:</strong> {{ facility.email|default:"Not provided" }}</p>
+              </div>
+            </div>
+          </div>
 
-         <div class="col-md-6 mb-4">
-           <div class="bg-light rounded-3 d-flex align-items-center justify-content-center" style="height: 250px; border: 2px dashed #ccc;">
-             <div class="text-center">
-               <div style="font-size: 3rem; color: #667eea;">📸</div>
-               <p class="mt-2 mb-0">Patient Room</p>
-               <small class="text-muted">(Add image here)</small>
-             </div>
-           </div>
-         </div>
+          <!-- Secondary card: small info or map placeholder -->
+          <div class="col-md-6 mb-4">
+            <div class="card h-100 shadow-sm p-3">
+              <div class="card-body d-flex flex-column justify-content-center">
+                <h5 class="card-title">Visit {{ facility.name }}</h5>
+                <p class="card-text mb-3">Located at: {{ facility.address|default:"Address not available" }}</p>
+                <a href="tel:{{ facility.phone }}" class="btn btn-primary mb-2" {% if not facility.phone %}disabled{% endif %}>Call Facility</a>
+                <a href="mailto:{{ facility.email }}" class="btn btn-outline-primary" {% if not facility.email %}disabled{% endif %}>Email Facility</a>
+              </div>
+            </div>
+          </div>
+        {% else %}
+          <!-- fallback placeholders when no Facility record exists -->
+          <div class="col-md-6 mb-4">
+            <div class="bg-light rounded-3 d-flex align-items-center justify-content-center" style="height: 250px; border: 2px dashed #ccc;">
+              <div class="text-center">
+                <div style="font-size: 3rem; color: #667eea;">📸</div>
+                <p class="mt-2 mb-0">Operation Theater</p>
+                <small class="text-muted">(Add image here)</small>
+              </div>
+            </div>
+          </div>
 
-         <div class="col-md-6 mb-4">
-           <div class="bg-light rounded-3 d-flex align-items-center justify-content-center" style="height: 250px; border: 2px dashed #ccc;">
-             <div class="text-center">
-               <div style="font-size: 3rem; color: #667eea;">📸</div>
-               <p class="mt-2 mb-0">Diagnostic Center</p>
-               <small class="text-muted">(Add image here)</small>
-             </div>
-           </div>
-         </div>
-
-         <div class="col-md-6 mb-4">
-           <div class="bg-light rounded-3 d-flex align-items-center justify-content-center" style="height: 250px; border: 2px dashed #ccc;">
-             <div class="text-center">
-               <div style="font-size: 3rem; color: #667eea;">📸</div>
-               <p class="mt-2 mb-0">Reception Area</p>
-               <small class="text-muted">(Add image here)</small>
-             </div>
-           </div>
-         </div>
-       </div>
-     </section>
+          <div class="col-md-6 mb-4">
+            <div class="bg-light rounded-3 d-flex align-items-center justify-content-center" style="height: 250px; border: 2px dashed #ccc;">
+              <div class="text-center">
+                <div style="font-size: 3rem; color: #667eea;">📸</div>
+                <p class="mt-2 mb-0">Patient Room</p>
+                <small class="text-muted">(Add image here)</small>
+              </div>
+            </div>
+          </div>
+        {% endif %}
+      </div>
+    </section>
 
      <!-- Contact / Emergency -->
      <section class="my-5 text-center">

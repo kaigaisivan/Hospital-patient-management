@@ -1,0 +1,31 @@
+<!-- html
+File: templates/facilities.html — list all facilities added by admin -->
+{% extends 'base.html' %}
+
+{% block title %}Facilities{% endblock %}
+
+{% block content %}
+<div class="container py-4">
+  <h1>Facilities</h1>
+  {% if facilities %}
+    <div class="row">
+      {% for f in facilities %}
+        <div class="col-md-4 mb-3">
+          <div class="card h-100">
+            {% if f.logo %}
+              <img src="{{ f.logo.url }}" class="card-img-top" alt="{{ f.name }}" style="max-height:180px; object-fit:cover;">
+            {% endif %}
+            <div class="card-body">
+              <h5 class="card-title">{{ f.name }}</h5>
+              <p class="card-text text-truncate">{{ f.description }}</p>
+              <a href="{% url 'facility_detail' f.pk %}" class="btn btn-sm btn-primary">View</a>
+            </div>
+          </div>
+        </div>
+      {% endfor %}
+    </div>
+  {% else %}
+    <p>No facilities available.</p>
+  {% endif %}
+</div>
+{% endblock %}

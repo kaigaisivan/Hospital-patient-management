@@ -271,3 +271,23 @@ class PatientProfile(models.Model):
 def create_patient_profile(sender, instance, created, **kwargs):
     if created and getattr(instance, 'role', None) == CustomUser.ROLE_PATIENT:
         PatientProfile.objects.create(user=instance)
+
+
+class Facility(models.Model):
+    name = models.CharField(max_length=200)
+    address = models.TextField(blank=True)
+    phone = models.CharField(max_length=20, blank=True)
+    email = models.EmailField(blank=True)
+    emergency_phone = models.CharField(max_length=20, blank=True)
+    description = models.TextField(blank=True)
+    logo = models.ImageField(upload_to='facility_logos/', null=True, blank=True)
+
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+
+    class Meta:
+        verbose_name = "Facility"
+        verbose_name_plural = "Facility"
+
+    def __str__(self):
+        return self.name or "Facility"

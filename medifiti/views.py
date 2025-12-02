@@ -6,6 +6,11 @@ from django.conf import settings
 from django.contrib import messages
 from django.db.models import Q
 
+import csv
+from django.http import HttpResponse
+from django.shortcuts import render, redirect, get_object_or_404
+from django.contrib import messages
+
 from django.shortcuts import render, redirect, get_object_or_404
 from django.contrib import messages
 
@@ -18,18 +23,34 @@ from django.contrib.auth.decorators import login_required
 from .decorators import admin_required, doctor_required, patient_required
 from .models import (
     CustomUser, Contact, Doctor, Appointment, Service, LabSample,
-    Patient, PatientProfile
+    Patient, PatientProfile, Facility,
 )
 from .forms import (
-    PatientForm, AppointmentForm, PatientProfileForm
+    PatientForm, AppointmentForm, PatientProfileForm, DoctorProfileForm, FacilityForm,
 )
 
 
 # --- Public pages ---
 def index(request):
     services_qs = Service.objects.filter(active=True).order_by('-created_at')[:6]
-    return render(request, 'index.html', {'services': services_qs})
+    facility = Facility.objects.first()  # returns None if not created
+    return render(request, 'index.html', {'services': services_qs, 'facility': facility})
 
+
+@admin_required
+def contact_detail(request, id):
+    """
+    Simple contact detail view for admin.
+    """
+    contact = get_object_or_404(Contact, id=id)
+    return render(request, 'contact_detail.html', {'contact': contact})
+
+@admin_required
+def delete_contact(request, id):
+    contact = get_object_or_404(Contact, id=id)
+    contact.delete()
+    messages.success(request, 'Contact message deleted.')
+    return redirect('admin_dashboard')
 
 def services(request):
     services_qs = Service.objects.filter(active=True).order_by('-updated_at')
@@ -269,7 +290,7 @@ def login_user(request):
                 return redirect('patient_dashboard')
     else:
         form = AuthenticationForm()
-    return render(request, 'login.html', {'form': form})
+    return render(request, 'registration/login.html', {'form': form})
 def logout_user(request):
     auth_logout(request)
     return redirect('index')
@@ -440,3 +461,60 @@ def emergency_contact(request):
 @login_required
 def medical_files(request):
     return render(request, 'medical_files.html')
+def facilities_list(request):
+    facilities = Facility.objects.all().order_by('-updated_at')
+    return render(request, 'facilities.html', {'facilities': facilities})
+
+def facility_detail(request, pk):
+    facility = get_object_or_404(Facility, pk=pk)
+    return render(request, 'facility.html', {'facility': facility})
+def facility(request):
+    """
+    Public facility page showing the single Facility instance (if any).
+    """
+    facility = Facility.objects.first()
+    return render(request, 'facility.html', {'facility': facility})
+
+
+@admin_required
+def edit_facility(request):
+    facility, _ = Facility.objects.get_or_create(pk=1, defaults={'name': 'Our Facility'})
+    if request.method == 'POST':
+        form = FacilityForm(request.POST, request.FILES, instance=facility)
+        if form.is_valid():
+            form.save()
+            messages.success(request, 'Facility information updated.')
+            return redirect('admin_dashboard')
+        else:
+            messages.error(request, 'Please correct the errors below.')
+    else:
+        form = FacilityForm(instance=facility)
+    return render(request, 'edit_facility.html', {'form': form, 'facility': facility})
+
+@admin_required
+def export_patients_csv(request):
+    """
+    Export patients as CSV for admin.
+    """
+    response = HttpResponse(content_type='text/csv')
+    response['Content-Disposition'] = 'attachment; filename="patients.csv"'
+    writer = csv.writer(response)
+    writer.writerow(['id', 'first_name', 'last_name', 'age', 'email', 'phone_number', 'location', 'created_at'])
+    for p in Patient.objects.all().order_by('-created_at'):
+        writer.writerow([p.id, p.first_name, p.last_name, p.age or '', p.email or '', p.phone_number or '', p.location or '', p.created_at])
+    return response
+
+@login_required
+def dashboard_redirect(request):
+    """
+    Central named 'dashboard' view used by built-in auth redirect.
+    Sends users to their role-specific dashboard so `reverse('dashboard')` works.
+    """
+    user = request.user
+    role = getattr(user, 'role', None)
+    if role == CustomUser.ROLE_ADMIN:
+        return redirect('admin_dashboard')
+    if role == CustomUser.ROLE_DOCTOR:
+        return redirect('doctor_dashboard')
+    # default for patients and anonymous fallback
+    return redirect('patient_dashboard' if user.is_authenticated else 'index')

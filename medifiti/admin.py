@@ -5,7 +5,7 @@ from django.utils.translation import gettext_lazy as _
 
 from .models import (
     CustomUser, Patient, PatientProfile, Appointment,
-    Service, Doctor, LabSample, Contact
+    Service, Doctor, LabSample, Contact, Facility
 )
 
 
@@ -168,3 +168,17 @@ class ContactAdmin(admin.ModelAdmin):
     list_display = ('full_name', 'email', 'created_at')
     search_fields = ('full_name', 'email', 'message')
     date_hierarchy = 'created_at'
+@admin.register(Facility)
+class FacilityAdmin(admin.ModelAdmin):
+    list_display = ('name', 'phone', 'email', 'updated_at')
+    readonly_fields = ('logo_preview', 'created_at', 'updated_at')
+    fieldsets = (
+        (None, {'fields': ('name', 'address', 'phone', 'email', 'emergency_phone', 'description', 'logo', 'logo_preview')}),
+        ('Timestamps', {'fields': ('created_at', 'updated_at')}),
+    )
+
+    def logo_preview(self, obj):
+        if obj and getattr(obj, 'logo', None):
+            return format_html('<img src="{}" style="max-height:150px;"/>', obj.logo.url)
+        return "(No logo)"
+    logo_preview.short_description = "Logo preview"
